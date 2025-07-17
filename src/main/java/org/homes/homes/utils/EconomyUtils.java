@@ -30,12 +30,12 @@ public class EconomyUtils {
     }
 
     public static boolean removeMoney(Player player, int amount) {
-        if (!hasMoney(player, amount)) return false;
+        int current = getMoney(player);
+        if (current < amount) return false;
         Scoreboard scoreboard = player.getScoreboard();
         Objective obj = scoreboard.getObjective(MONEY_OBJECTIVE);
         if (obj == null) return false;
         Score score = obj.getScore(player.getName());
-        int current = score.isScoreSet() ? score.getScore() : 0;
         score.setScore(current - amount);
         return true;
     }
