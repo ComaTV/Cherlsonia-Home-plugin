@@ -17,7 +17,6 @@ public class EventManager {
 
     private void registerListeners() {
         listeners.add(new GUIListener());
-        // Add more listeners here as needed
         listeners.add(new WorldLoadListener());
     }
 

@@ -59,14 +59,11 @@ public class AddHomesCommand implements CommandManager.CommandExecutor, CommandM
     @Override
     public List<String> onTabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            // Tab completion for waypoint name (first argument)
-            return new ArrayList<>(); // Empty list for name suggestions
+            return new ArrayList<>();
         } else if (args.length == 2) {
-            // Tab completion for item material (second argument)
             String partialItem = args[1].toLowerCase();
             List<String> suggestions = new ArrayList<>();
             
-            // Popular items for waypoints
             String[] popularItems = {
                 "ender_pearl", "diamond", "emerald", "gold_ingot", "iron_ingot", 
                 "netherite_ingot", "emerald_block", "diamond_block", "gold_block",

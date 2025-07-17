@@ -1,14 +1,11 @@
 package org.homes.homes.commands;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.homes.homes.config.ConfigManager;
 import org.homes.homes.homes.HomeMenuManager;
 import org.homes.homes.utils.MessageUtils;
 import org.homes.homes.utils.ValidationUtils;
-import org.homes.homes.commands.CommandManager;
 
 public class HomesCommand implements CommandManager.CommandExecutor {
     private final ConfigManager configManager;

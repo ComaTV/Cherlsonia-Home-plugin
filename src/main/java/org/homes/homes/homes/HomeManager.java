@@ -129,15 +129,13 @@ public class HomeManager {
         return true;
     }
 
-    public static boolean removeHome(Player player, String name) {
-        UUID uuid = player.getUniqueId();
+    public static boolean removeHome(UUID uuid, String homeName) {
         Map<String, Home> homes = playerHomes.get(uuid);
-        if (homes == null || !homes.containsKey(name)) return false;
-        homes.remove(name);
-        int homeCost = configManager != null ? configManager.getHomePrice() : 1000;
-        EconomyUtils.addMoney(player, homeCost);
-        saveHomes();
-        return true;
+        if (homes != null && homes.remove(homeName) != null) {
+            saveHomes();
+            return true;
+        }
+        return false;
     }
 
     public static Home getHome(Player player, String name) {

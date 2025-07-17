@@ -21,17 +21,7 @@
 - All other commands are available to all players.
 
 ## Setup
-2. **Scoreboard Setup:**
-   - The plugin uses a scoreboard objective named `money` for the economy.
-   - To create it, run in-game as OP:
-     ```
-     /scoreboard objectives add money dummy Money
-     ```
-   - Give players money as needed:
-     ```
-     /scoreboard players add <player> money <amount>
-     ```
-3. **Installation:**
+1. **Installation:**
    - Place the plugin JAR in your server's `plugins` folder.
    - Restart or reload the server.
 

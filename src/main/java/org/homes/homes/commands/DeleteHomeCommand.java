@@ -23,7 +23,7 @@ public class DeleteHomeCommand implements CommandManager.CommandExecutor {
             MessageUtils.sendInfo(sender, "/delhome <name>");
             return true;
         }
-        boolean ok = HomeManager.removeHome(player, args[0]);
+        boolean ok = HomeManager.removeHome(player.getUniqueId(), args[0]);
         if (ok) {
             MessageUtils.sendSuccess(sender, "Home has been deleted and money refunded!");
         } else {

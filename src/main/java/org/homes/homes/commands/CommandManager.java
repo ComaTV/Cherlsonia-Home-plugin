@@ -22,7 +22,7 @@ public class CommandManager implements TabCompleter {
     private void registerCommands() {
         commands.put("addhome", new AddHomeCommand());
         commands.put("delhome", new DeleteHomeCommand());
-        commands.put("homes", new HomesCommand(configManager)); // Pass configManager here
+        commands.put("homes", new HomesCommand(configManager));
         commands.put("adminhome", new AdminHomeCommand());
     }
 

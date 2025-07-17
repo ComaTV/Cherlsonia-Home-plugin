@@ -240,7 +240,7 @@ public class HomeMenuManager {
         String prefix = org.bukkit.ChatColor.RED + "✖ " + org.bukkit.ChatColor.GOLD;
         if (displayName.startsWith(prefix)) {
             String name = displayName.substring(prefix.length());
-            boolean ok = HomeManager.removeHome(player, name);
+            boolean ok = HomeManager.removeHome(player.getUniqueId(), name);
             if (ok) {
                 org.homes.homes.utils.MessageUtils.sendSuccess(player, "Home has been deleted and money refunded!");
             } else {
@@ -347,7 +347,7 @@ public class HomeMenuManager {
                 String playerName = title.replace(org.bukkit.ChatColor.DARK_AQUA + "Homes of ", "");
                 org.bukkit.OfflinePlayer target = org.bukkit.Bukkit.getOfflinePlayer(playerName);
                 if (target != null && target.getUniqueId() != null) {
-                    boolean ok = HomeManager.getHomes(target.getUniqueId()).remove(homeName) != null;
+                    boolean ok = HomeManager.removeHome(target.getUniqueId(), homeName);
                     if (ok) {
                         org.homes.homes.utils.MessageUtils.sendSuccess(admin, "Home '" + homeName + "' has been deleted for " + playerName + ".");
                         HomeManager.saveHomes();
