@@ -2,7 +2,6 @@ package org.homes.homes.utils;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.homes.homes.config.ConfigManager;
 
 public class MessageUtils {
