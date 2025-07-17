@@ -1,20 +1,13 @@
 # Charless Plugin Configuration
 
-# Waypoint System Configuration
-waypoints:
-  enabled: true
-  max_per_player: 10
-  default_item: ENDER_PEARL
-
 # Message Configuration
 messages:
   prefix: "&8[&bCharlesonia&8] &r"
-  waypoint_added: "&aWaypoint '%name%' added with item %item%!"
-  waypoint_deleted: "&cWaypoint deleted!"
-  waypoint_exists: "&cA waypoint with this name already exists!"
-  no_waypoint: "&cNo such waypoint!"
   teleported: "&aTeleported to waypoint: %name%"
   player_only: "&cOnly players can use this command."
   operator_only: "&cOnly operators can use this command."
   invalid_item: "&cInvalid item: %item%"
   invalid_name: "&cInvalid waypoint name! Use only letters, numbers, and underscores (max 32 characters)." 
+
+home:
+  price: 1000 
