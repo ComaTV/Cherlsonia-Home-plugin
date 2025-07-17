@@ -117,12 +117,12 @@ public class HomeManager {
     }
 
     public static boolean addHome(Player player, String name) {
+        int homeCost = configManager != null ? configManager.getHomePrice() : 1000;
+        if (!EconomyUtils.hasMoney(player, homeCost)) return false;
         UUID uuid = player.getUniqueId();
         Map<String, Home> homes = playerHomes.computeIfAbsent(uuid, k -> new HashMap<>());
         if (homes.size() >= MAX_HOMES) return false;
         if (homes.containsKey(name)) return false;
-        int homeCost = configManager != null ? configManager.getHomePrice() : 1000;
-        if (!EconomyUtils.hasMoney(player, homeCost)) return false;
         if (!EconomyUtils.removeMoney(player, homeCost)) return false;
         homes.put(name, new Home(name, player.getLocation()));
         saveHomes();
