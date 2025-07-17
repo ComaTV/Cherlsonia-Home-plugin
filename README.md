@@ -1,6 +1,3 @@
-# Home System Plugin
-
-A modern Minecraft Paper plugin that allows players to set, teleport to, and manage their own homes, with an integrated money system and admin GUI for OPs.
 
 ## Features
 - Players can create up to 10 homes, each with a custom name.
@@ -23,9 +20,6 @@ A modern Minecraft Paper plugin that allows players to set, teleport to, and man
 - All other commands are available to all players.
 
 ## Setup
-1. **Requirements:**
-   - Minecraft server with [Paper](https://papermc.io/) 1.21+
-   - Java 21+
 2. **Scoreboard Setup:**
    - The plugin uses a scoreboard objective named `money` for the economy.
    - To create it, run in-game as OP:
