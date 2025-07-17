@@ -1,0 +1,18 @@
+name: homes
+version: '1.0'
+main: org.homes.homes.Main
+api-version: '1.21'
+load: STARTUP
+commands:
+  addhome:
+    description: Adaugă un home la locația ta curentă
+    usage: /addhome <nume>
+  delhome:
+    description: Șterge un home sau deschide meniul de ștergere
+    usage: /delhome <nume>
+  homes:
+    description: Deschide meniul cu home-urile tale
+    usage: /homes
+  adminhome:
+    description: Deschide meniul admin pentru gestionarea home-urilor tuturor jucătorilor (OP only)
+    usage: /adminhome
