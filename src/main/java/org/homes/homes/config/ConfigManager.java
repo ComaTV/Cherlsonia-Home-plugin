@@ -27,15 +27,7 @@ public class ConfigManager {
     }
 
     private void setDefaults() {
-        config.addDefault("waypoints.enabled", true);
-        config.addDefault("waypoints.max_per_player", 10);
-        config.addDefault("waypoints.default_item", "ENDER_PEARL");
         config.addDefault("messages.prefix", "&8[&bCharless&8] &r");
-        config.addDefault("messages.waypoint_added", "&aWaypoint '%name%' added with item %item%!");
-        config.addDefault("messages.waypoint_deleted", "&cWaypoint deleted!");
-        config.addDefault("messages.waypoint_exists", "&cA waypoint with this name already exists!");
-        config.addDefault("messages.no_waypoint", "&cNo such waypoint!");
-        config.addDefault("messages.teleported", "&aTeleported to waypoint: %name%");
         
         config.options().copyDefaults(true);
         saveConfig();
@@ -51,7 +43,6 @@ public class ConfigManager {
 
     public void reloadConfig() {
         config = YamlConfiguration.loadConfiguration(configFile);
-        setDefaults();
     }
 
     public FileConfiguration getConfig() {
@@ -70,5 +61,9 @@ public class ConfigManager {
             }
         }
         return message;
+    }
+
+    public int getHomePrice() {
+        return config.getInt("home.price", 1000);
     }
 } 

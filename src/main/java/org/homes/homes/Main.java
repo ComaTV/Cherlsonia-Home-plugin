@@ -24,9 +24,10 @@ public class Main extends JavaPlugin {
         // Initialize home system
         HomeManager.setPlugin(this);
         HomeManager.init(getDataFolder());
+        HomeManager.setConfigManager(configManager);
 
         // Initialize command system
-        commandManager = new CommandManager();
+        commandManager = new CommandManager(configManager);
         getCommand("addhome").setTabCompleter(commandManager);
         getCommand("delhome").setTabCompleter(commandManager);
         getCommand("homes").setTabCompleter(commandManager);

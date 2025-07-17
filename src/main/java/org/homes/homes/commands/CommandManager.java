@@ -8,18 +8,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.homes.homes.config.ConfigManager;
 
 public class CommandManager implements TabCompleter {
     private final Map<String, CommandExecutor> commands = new HashMap<>();
+    private final ConfigManager configManager;
 
-    public CommandManager() {
+    public CommandManager(ConfigManager configManager) {
+        this.configManager = configManager;
         registerCommands();
     }
 
     private void registerCommands() {
         commands.put("addhome", new AddHomeCommand());
         commands.put("delhome", new DeleteHomeCommand());
-        commands.put("homes", new HomesCommand());
+        commands.put("homes", new HomesCommand(configManager)); // Pass configManager here
         commands.put("adminhome", new AdminHomeCommand());
     }
 

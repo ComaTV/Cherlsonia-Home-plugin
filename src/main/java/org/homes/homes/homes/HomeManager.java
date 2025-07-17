@@ -2,8 +2,6 @@ package org.homes.homes.homes;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -11,20 +9,24 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.homes.homes.utils.EconomyUtils;
+import org.homes.homes.config.ConfigManager;
 
 public class HomeManager {
     private static final int MAX_HOMES = 10;
-    private static final int HOME_COST = 1000;
     private static final String HOMES_FILE = "homes.yml";
     private static Map<UUID, Map<String, Home>> playerHomes = new HashMap<>();
     private static File file;
     private static YamlConfiguration config;
     private static JavaPlugin plugin;
+    private static ConfigManager configManager;
 
     public static void setPlugin(JavaPlugin pluginInstance) {
         plugin = pluginInstance;
+    }
+
+    public static void setConfigManager(ConfigManager manager) {
+        configManager = manager;
     }
 
     public static class Home {
@@ -119,8 +121,9 @@ public class HomeManager {
         Map<String, Home> homes = playerHomes.computeIfAbsent(uuid, k -> new HashMap<>());
         if (homes.size() >= MAX_HOMES) return false;
         if (homes.containsKey(name)) return false;
-        if (!EconomyUtils.hasMoney(player, HOME_COST)) return false;
-        if (!EconomyUtils.removeMoney(player, HOME_COST)) return false;
+        int homeCost = configManager != null ? configManager.getHomePrice() : 1000;
+        if (!EconomyUtils.hasMoney(player, homeCost)) return false;
+        if (!EconomyUtils.removeMoney(player, homeCost)) return false;
         homes.put(name, new Home(name, player.getLocation()));
         saveHomes();
         return true;
@@ -131,7 +134,8 @@ public class HomeManager {
         Map<String, Home> homes = playerHomes.get(uuid);
         if (homes == null || !homes.containsKey(name)) return false;
         homes.remove(name);
-        EconomyUtils.addMoney(player, HOME_COST);
+        int homeCost = configManager != null ? configManager.getHomePrice() : 1000;
+        EconomyUtils.addMoney(player, homeCost);
         saveHomes();
         return true;
     }

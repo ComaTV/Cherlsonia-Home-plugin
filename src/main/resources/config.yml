@@ -3,7 +3,6 @@
 # Message Configuration
 messages:
   prefix: "&8[&bCharlesonia&8] &r"
-  teleported: "&aTeleported to waypoint: %name%"
   player_only: "&cOnly players can use this command."
   operator_only: "&cOnly operators can use this command."
   invalid_item: "&cInvalid item: %item%"
