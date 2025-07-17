@@ -11,7 +11,7 @@ public class DeleteHomeCommand implements CommandManager.CommandExecutor {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (!ValidationUtils.isPlayer(sender)) {
-            MessageUtils.sendError(sender, "Doar jucătorii pot folosi această comandă.");
+            MessageUtils.sendError(sender, "Only players can use this command.");
             return true;
         }
         Player player = (Player) sender;
@@ -20,14 +20,14 @@ public class DeleteHomeCommand implements CommandManager.CommandExecutor {
             return true;
         }
         if (args.length != 1) {
-            MessageUtils.sendInfo(sender, "/delhome <nume>");
+            MessageUtils.sendInfo(sender, "/delhome <name>");
             return true;
         }
         boolean ok = HomeManager.removeHome(player, args[0]);
         if (ok) {
-            MessageUtils.sendSuccess(sender, "Home-ul a fost șters și banii returnați!");
+            MessageUtils.sendSuccess(sender, "Home has been deleted and money refunded!");
         } else {
-            MessageUtils.sendError(sender, "Nu există acest home!");
+            MessageUtils.sendError(sender, "This home does not exist!");
         }
         return true;
     }

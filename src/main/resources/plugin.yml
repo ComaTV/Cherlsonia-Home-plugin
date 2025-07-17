@@ -5,14 +5,14 @@ api-version: '1.21'
 load: STARTUP
 commands:
   addhome:
-    description: Adaugă un home la locația ta curentă
-    usage: /addhome <nume>
+    description: Add a home at your current location
+    usage: /addhome <name>
   delhome:
-    description: Șterge un home sau deschide meniul de ștergere
-    usage: /delhome <nume>
+    description: Delete a home or open the delete menu
+    usage: /delhome <name>
   homes:
-    description: Deschide meniul cu home-urile tale
+    description: Open the menu with your homes
     usage: /homes
   adminhome:
-    description: Deschide meniul admin pentru gestionarea home-urilor tuturor jucătorilor (OP only)
+    description: Open the admin menu to manage all players' homes (OP only)
     usage: /adminhome

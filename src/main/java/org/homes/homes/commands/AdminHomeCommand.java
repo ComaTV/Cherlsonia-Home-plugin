@@ -10,11 +10,11 @@ public class AdminHomeCommand implements CommandManager.CommandExecutor {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (!ValidationUtils.isPlayer(sender)) {
-            MessageUtils.sendError(sender, "Doar jucătorii pot folosi această comandă.");
+            MessageUtils.sendError(sender, "Only players can use this command.");
             return true;
         }
         if (!sender.isOp()) {
-            MessageUtils.sendError(sender, "Doar OP-ii pot folosi această comandă.");
+            MessageUtils.sendError(sender, "Only OPs can use this command.");
             return true;
         }
         Player player = (Player) sender;

@@ -10,7 +10,7 @@ public class HomesCommand implements CommandManager.CommandExecutor {
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (!ValidationUtils.isPlayer(sender)) {
-            MessageUtils.sendError(sender, "Doar jucătorii pot folosi această comandă.");
+            MessageUtils.sendError(sender, "Only players can use this command.");
             return true;
         }
         HomeMenuManager.openHomesMenu((Player) sender);

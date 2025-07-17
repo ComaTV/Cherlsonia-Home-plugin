@@ -1,199 +1,59 @@
-# Charless Plugin
+# Home System Plugin
 
-A modular and extensible Minecraft plugin for Paper/Spigot servers.
+A modern Minecraft Paper plugin that allows players to set, teleport to, and manage their own homes, with an integrated money system and admin GUI for OPs.
 
-## 🏗️ Project Structure
+## Features
+- Players can create up to 10 homes, each with a custom name.
+- Creating a home costs 1000 money (scoreboard objective: `money`).
+- Deleting a home refunds 1000 money.
+- GUI menu for listing, teleporting to, and deleting homes.
+- Admin GUI for OPs to view and delete homes of any player (with pagination).
+- All messages, commands, and menus are in English.
 
-```
-src/main/java/org/charless/charless/
-├── Main.java                          # Main plugin class
-├── commands/                          # Modular command system
-│   ├── CommandManager.java           # Manager for all commands
-│   ├── AddWaypointCommand.java       # /addwaypoint command
-│   ├── DeleteWaypointCommand.java    # /delwaypoint command
-│   └── WaypointsCommand.java         # /waypoints command
-├── config/                           # Configuration system
-│   └── ConfigManager.java            # Configuration manager
-├── events/                           # Event system
-│   ├── EventManager.java             # Event manager
-│   └── GUIListener.java              # GUI interface listener
-├── utils/                            # Common utilities
-│   ├── MessageUtils.java             # Message utilities
-│   └── ValidationUtils.java          # Validation utilities
-└── waypoints/                        # Waypoint system
-    ├── WaypointManager.java          # Waypoint manager
-    └── WaypointMenuManager.java      # Menu manager
-```
+## Commands
+| Command         | Description                                      | Permission   |
+|----------------|--------------------------------------------------|--------------|
+| `/addhome <name>`   | Add a home at your current location (costs 1000 money) | everyone     |
+| `/delhome <name>`   | Delete a home by name and get a refund (or open delete menu) | everyone     |
+| `/homes`            | Open the menu with your homes                 | everyone     |
+| `/adminhome`        | Open the admin menu to manage all players' homes | OP only      |
 
-## 🚀 Features
+## Permissions
+- Only OPs can use `/adminhome` and access the admin GUI.
+- All other commands are available to all players.
 
-### Waypoint System
-- **Command `/addwaypoint <name> [item]`** - Create a waypoint with custom item
-- **Command `/delwaypoint <name>`** - Delete a waypoint
-- **Command `/waypoints`** - Open the waypoints menu
-- **Tab Completion** - Intelligent suggestions for items
-- **GUI Menus** - Visual interfaces for navigation
+## Setup
+1. **Requirements:**
+   - Minecraft server with [Paper](https://papermc.io/) 1.21+
+   - Java 21+
+2. **Scoreboard Setup:**
+   - The plugin uses a scoreboard objective named `money` for the economy.
+   - To create it, run in-game as OP:
+     ```
+     /scoreboard objectives add money dummy Money
+     ```
+   - Give players money as needed:
+     ```
+     /scoreboard players add <player> money <amount>
+     ```
+3. **Installation:**
+   - Place the plugin JAR in your server's `plugins` folder.
+   - Restart or reload the server.
 
-### Characteristics
-- ✅ **Modular** - Easy to extend with new systems
-- ✅ **Configurable** - Customizable messages and settings
-- ✅ **Validation** - Security checks and validation
-- ✅ **Messages** - Centralized message system
-- ✅ **Utilities** - Reusable common functions
+## Usage
+- **Add a home:** `/addhome myhouse`
+- **Teleport to a home:** Open `/homes` menu and click a home, or use the GUI.
+- **Delete a home:** `/delhome myhouse` or use the delete menu.
+- **Admin:** `/adminhome` to open the admin GUI, browse players, and delete any home.
 
-## 📋 Commands
+## Configuration
+- All messages and settings can be customized in `config.yml`.
+- Home data is stored in `homes.yml` in the plugin data folder.
 
-| Command | Description | Permissions |
-|---------|-------------|-------------|
-| `/addwaypoint <name> [item]` | Create a waypoint with optional item | OP |
-| `/delwaypoint <name>` | Delete a waypoint | OP |
-| `/waypoints` | Open waypoints menu | All |
+## Notes
+- Players must have at least 1000 money to create a home.
+- Deleting a home always refunds 1000 money.
+- The plugin is fully in English.
 
-## ⚙️ Configuration
-
-The `config.yml` file contains all plugin settings:
-
-```yaml
-# Waypoint System Configuration
-waypoints:
-  enabled: true
-  max_per_player: 10
-  default_item: ENDER_PEARL
-
-# Message Configuration
-messages:
-  prefix: "&8[&bCharless&8] &r"
-  waypoint_added: "&aWaypoint '%name%' added with item %item%!"
-  waypoint_deleted: "&cWaypoint deleted!"
-  # ... more messages
-```
-
-## 🔧 Extending the Plugin
-
-### Adding a New Command
-
-1. Create a new class in the `commands` package:
-
-```java
-package org.charless.charless.commands;
-
-import org.bukkit.command.CommandSender;
-import org.charless.charless.utils.MessageUtils;
-import org.charless.charless.utils.ValidationUtils;
-
-public class MyNewCommand implements CommandManager.CommandExecutor {
-    
-    @Override
-    public boolean execute(CommandSender sender, String[] args) {
-        if (!ValidationUtils.isPlayer(sender)) {
-            MessageUtils.sendError(sender, "Only players can use this command.");
-            return true;
-        }
-        
-        MessageUtils.sendSuccess(sender, "Command executed successfully!");
-        return true;
-    }
-}
-```
-
-2. Register the command in `CommandManager.java`:
-
-```java
-private void registerCommands() {
-    commands.put("addwaypoint", new AddWaypointCommand());
-    commands.put("delwaypoint", new DeleteWaypointCommand());
-    commands.put("waypoints", new WaypointsCommand());
-    commands.put("mynewcommand", new MyNewCommand()); // Add here
-}
-```
-
-3. Add the command to `plugin.yml`:
-
-```yaml
-commands:
-  mynewcommand:
-    description: My new command description
-    usage: /mynewcommand
-```
-
-### Adding a New Listener
-
-1. Create a new class in the `events` package:
-
-```java
-package org.charless.charless.events;
-
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-
-public class MyNewListener implements Listener {
-    
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        // Event logic here
-    }
-}
-```
-
-2. Register the listener in `EventManager.java`:
-
-```java
-private void registerListeners() {
-    listeners.add(new GUIListener());
-    listeners.add(new MyNewListener()); // Add here
-}
-```
-
-### Adding a New System
-
-1. Create a new package for your system:
-
-```
-src/main/java/org/charless/charless/mysystem/
-├── MySystemManager.java
-└── MySystemCommand.java
-```
-
-2. Integrate the system in `Main.java`:
-
-```java
-public class Main extends JavaPlugin {
-    private MySystemManager mySystemManager;
-    
-    @Override
-    public void onEnable() {
-        // ... existing code ...
-        
-        // Initialize new system
-        mySystemManager = new MySystemManager(this);
-        
-        // ... existing code ...
-    }
-}
-```
-
-## 🎨 Customizing Messages
-
-All messages can be customized in `config.yml`:
-
-```yaml
-messages:
-  prefix: "&8[&bCharless&8] &r"
-  waypoint_added: "&aWaypoint '%name%' added with item %item%!"
-  waypoint_deleted: "&cWaypoint deleted!"
-```
-
-Use `%variable%` to replace dynamic values in messages.
-
-## 🔒 Permissions
-
-The plugin uses operator permissions (`isOp()`) for administrative commands. For a more advanced permission system, you can integrate Vault or LuckPerms.
-
-## 📦 Building
-
-```bash
-mvn clean package
-```
-
-The compiled plugin will be in `target/charless-1.0-SNAPSHOT.jar`.
+## License
+MIT

@@ -13,24 +13,24 @@ public class AddHomeCommand implements CommandManager.CommandExecutor, CommandMa
     @Override
     public boolean execute(CommandSender sender, String[] args) {
         if (!ValidationUtils.isPlayer(sender)) {
-            MessageUtils.sendError(sender, "Doar jucătorii pot folosi această comandă.");
+            MessageUtils.sendError(sender, "Only players can use this command.");
             return true;
         }
         Player player = (Player) sender;
         if (args.length != 1) {
-            MessageUtils.sendInfo(sender, "/addhome <nume>");
+            MessageUtils.sendInfo(sender, "/addhome <name>");
             return true;
         }
         String name = args[0];
         if (!ValidationUtils.isValidHomeName(name)) {
-            MessageUtils.sendError(sender, "Nume invalid! Folosește doar litere, cifre și underscore (max 32 caractere).");
+            MessageUtils.sendError(sender, "Invalid name! Use only letters, numbers, and underscore (max 32 characters)." );
             return true;
         }
         boolean ok = HomeManager.addHome(player, name);
         if (ok) {
-            MessageUtils.sendSuccess(sender, "Home-ul '" + name + "' a fost adăugat!");
+            MessageUtils.sendSuccess(sender, "Home '" + name + "' has been added!");
         } else {
-            MessageUtils.sendError(sender, "Nu poți adăuga home-ul! Ai atins limita sau există deja un home cu acest nume.");
+            MessageUtils.sendError(sender, "Cannot add home! You reached the limit, already have a home with this name, or you don't have enough money.");
         }
         return true;
     }
