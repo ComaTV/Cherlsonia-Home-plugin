@@ -9,4 +9,4 @@ messages:
   invalid_name: "&cInvalid waypoint name! Use only letters, numbers, and underscores (max 32 characters)." 
 
 home:
-  price: 1000 
+  price: 100
