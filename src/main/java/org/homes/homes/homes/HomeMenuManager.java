@@ -1,177 +1,17 @@
 package org.homes.homes.homes;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.homes.homes.utils.MessageUtils;
-
-import java.util.ArrayList;
 import java.util.List;
+import org.homes.homes.config.ConfigManager;
+import org.homes.homes.utils.EconomyUtils;
 
 public class HomeMenuManager {
     private static final int MENU_SIZE = 27;
     private static final int ADMIN_MENU_SIZE = 54;
     private static final int MAX_HOMES = 10;
     private static final int PER_PAGE = 36;
+    private static ConfigManager configManager;
 
-    public static void openWaypointsMenu(Player player, int page) {
-        List<String> names = new ArrayList<>(HomesManager.getWaypointNames());
-        int total = names.size();
-        int maxPage = Math.max(1, (int) Math.ceil(total / (double) PER_PAGE));
-        page = Math.max(1, Math.min(page, maxPage));
-        Inventory inv = Bukkit.createInventory(null, MENU_SIZE, ChatColor.DARK_AQUA + "Waypoints " + ChatColor.GRAY + "(Page " + ChatColor.YELLOW + page + ChatColor.GRAY + ")");
-        int start = (page - 1) * PER_PAGE;
-        for (int i = 0; i < PER_PAGE && (start + i) < total; i++) {
-            String name = names.get(start + i);
-            Material itemMaterial = HomesManager.getWaypointItem(name);
-            ItemStack item = new ItemStack(itemMaterial);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(ChatColor.AQUA + "» " + ChatColor.GOLD + name);
-            meta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to teleport"));
-            item.setItemMeta(meta);
-            inv.setItem(i, item);
-        }
-        // Navigation buttons
-        ItemStack prev = new ItemStack(Material.ARROW);
-        ItemMeta prevMeta = prev.getItemMeta();
-        prevMeta.setDisplayName(ChatColor.YELLOW + "« Previous Page");
-        prev.setItemMeta(prevMeta);
-        inv.setItem(45, prev);
-        ItemStack next = new ItemStack(Material.ARROW);
-        ItemMeta nextMeta = next.getItemMeta();
-        nextMeta.setDisplayName(ChatColor.YELLOW + "Next Page »");
-        next.setItemMeta(nextMeta);
-        inv.setItem(53, next);
-        player.openInventory(inv);
-    }
-
-    public static void openWaypointsMenu(Player player) {
-        openWaypointsMenu(player, 1);
-    }
-
-    public static void openDeleteWaypointMenu(Player player, int page) {
-        List<String> names = new ArrayList<>(HomesManager.getWaypointNames());
-        int total = names.size();
-        int maxPage = Math.max(1, (int) Math.ceil(total / (double) PER_PAGE));
-        page = Math.max(1, Math.min(page, maxPage));
-        Inventory inv = Bukkit.createInventory(null, MENU_SIZE, ChatColor.DARK_RED + "Delete Waypoint " + ChatColor.GRAY + "(Page " + ChatColor.YELLOW + page + ChatColor.GRAY + ")");
-        int start = (page - 1) * PER_PAGE;
-        for (int i = 0; i < PER_PAGE && (start + i) < total; i++) {
-            String name = names.get(start + i);
-            Material itemMaterial = HomesManager.getWaypointItem(name);
-            ItemStack item = new ItemStack(itemMaterial);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(ChatColor.RED + "✖ " + ChatColor.GOLD + name);
-            meta.setLore(java.util.Collections.singletonList(ChatColor.GRAY + "Click to delete this waypoint"));
-            item.setItemMeta(meta);
-            inv.setItem(i, item);
-        }
-        // Navigation buttons
-        ItemStack prev = new ItemStack(Material.ARROW);
-        ItemMeta prevMeta = prev.getItemMeta();
-        prevMeta.setDisplayName(ChatColor.YELLOW + "« Previous Page");
-        prev.setItemMeta(prevMeta);
-        inv.setItem(45, prev);
-        ItemStack next = new ItemStack(Material.ARROW);
-        ItemMeta nextMeta = next.getItemMeta();
-        nextMeta.setDisplayName(ChatColor.YELLOW + "Next Page »");
-        next.setItemMeta(nextMeta);
-        inv.setItem(53, next);
-        player.openInventory(inv);
-    }
-
-    public static void openDeleteWaypointMenu(Player player) {
-        openDeleteWaypointMenu(player, 1);
-    }
-
-    public static boolean handleWaypointMenuClick(InventoryClickEvent event) {
-        String title = event.getView().getTitle();
-        if (!title.startsWith(ChatColor.DARK_AQUA + "Waypoints " + ChatColor.GRAY + "(Page ")) return false;
-        // Anulează orice click în meniu
-        event.setCancelled(true);
-        // Permite click doar în top inventory (meniu)
-        if (event.getClickedInventory() == null || !event.getClickedInventory().equals(event.getView().getTopInventory())) return true;
-        Player player = (Player) event.getWhoClicked();
-        int page = 1;
-        try {
-            String pageStr = title.replaceAll(".*\\(Page " + ChatColor.YELLOW, "").replaceAll(ChatColor.GRAY + "\\).*", "");
-            page = Integer.parseInt(pageStr);
-        } catch (Exception ignored) {}
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta()) return true;
-        
-        // Check if it's a waypoint item (any item that's not an arrow)
-        if (clicked.getType() != Material.ARROW) {
-            String displayName = clicked.getItemMeta().getDisplayName();
-            // Extrage numele waypoint-ului din displayName
-            String prefix = ChatColor.AQUA + "» " + ChatColor.GOLD;
-            if (displayName.startsWith(prefix)) {
-                String name = displayName.substring(prefix.length());
-                var loc = HomesManager.getWaypoint(name);
-                if (loc != null) {
-                    player.teleport(loc);
-                    MessageUtils.sendMessage(player, "teleported", "%name%", name);
-                    player.closeInventory();
-                }
-            }
-        } else if (clicked.getType() == Material.ARROW) {
-            String btn = clicked.getItemMeta().getDisplayName();
-            int total = HomesManager.getWaypointNames().size();
-            int maxPage = Math.max(1, (int) Math.ceil(total / (double) PER_PAGE));
-            if (btn.equals(ChatColor.YELLOW + "« Previous Page") && page > 1) {
-                openWaypointsMenu(player, page - 1);
-            } else if (btn.equals(ChatColor.YELLOW + "Next Page »") && page < maxPage) {
-                openWaypointsMenu(player, page + 1);
-            }
-        }
-        return true;
-    }
-
-    public static boolean handleDeleteMenuClick(InventoryClickEvent event) {
-        String title = event.getView().getTitle();
-        if (!title.startsWith(ChatColor.DARK_RED + "Delete Waypoint " + ChatColor.GRAY + "(Page ")) return false;
-        // Anulează orice click în meniu
-        event.setCancelled(true);
-        if (event.getClickedInventory() == null || !event.getClickedInventory().equals(event.getView().getTopInventory())) return true;
-        Player player = (Player) event.getWhoClicked();
-        int page = 1;
-        try {
-            String pageStr = title.replaceAll(".*\\(Page " + ChatColor.YELLOW, "").replaceAll(ChatColor.GRAY + "\\).*", "");
-            page = Integer.parseInt(pageStr);
-        } catch (Exception ignored) {}
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta()) return true;
-        
-        // Check if it's a waypoint item (any item that's not an arrow)
-        if (clicked.getType() != Material.ARROW) {
-            String displayName = clicked.getItemMeta().getDisplayName();
-            String prefix = ChatColor.RED + "✖ " + ChatColor.GOLD;
-            if (displayName.startsWith(prefix)) {
-                String name = displayName.substring(prefix.length());
-                boolean ok = HomesManager.removeWaypoint(name);
-                if (ok) {
-                    MessageUtils.sendMessage(player, "waypoint_deleted");
-                } else {
-                    MessageUtils.sendMessage(player, "no_waypoint");
-                }
-                player.closeInventory();
-            }
-        } else if (clicked.getType() == Material.ARROW) {
-            String btn = clicked.getItemMeta().getDisplayName();
-            int total = HomesManager.getWaypointNames().size();
-            int maxPage = Math.max(1, (int) Math.ceil(total / (double) PER_PAGE));
-            if (btn.equals(ChatColor.YELLOW + "« Previous Page") && page > 1) {
-                openDeleteWaypointMenu(player, page - 1);
-            } else if (btn.equals(ChatColor.YELLOW + "Next Page »") && page < maxPage) {
-                openDeleteWaypointMenu(player, page + 1);
-            }
-        }
-        return true;
+    public static void setConfigManager(ConfigManager configManager) {
+        HomeMenuManager.configManager = configManager;
     }
 
     public static void openHomesMenu(org.bukkit.entity.Player player) {
@@ -286,6 +126,7 @@ public class HomeMenuManager {
         java.util.Map<String, HomeManager.Home> homes = HomeManager.getHomes(targetUuid);
         org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(null, MENU_SIZE, org.bukkit.ChatColor.DARK_AQUA + "Homes of " + org.bukkit.Bukkit.getOfflinePlayer(targetUuid).getName());
         int i = 0;
+        admin.sendMessage("test2");
         for (HomeManager.Home home : homes.values()) {
             if (i >= MAX_HOMES) break;
             org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(org.bukkit.Material.BARRIER);
@@ -294,6 +135,8 @@ public class HomeMenuManager {
             meta.setLore(java.util.Collections.singletonList(org.bukkit.ChatColor.GRAY + "Click to delete"));
             item.setItemMeta(meta);
             inv.setItem(i++, item);
+            
+            admin.sendMessage("test3");
         }
         admin.openInventory(inv);
     }
@@ -311,6 +154,7 @@ public class HomeMenuManager {
             String playerName = org.bukkit.ChatColor.stripColor(displayName);
             org.bukkit.OfflinePlayer target = org.bukkit.Bukkit.getOfflinePlayer(playerName);
             if (target != null && target.getUniqueId() != null) {
+                admin.sendMessage("test");
                 openAdminHomesMenu(admin, target.getUniqueId());
             }
         } else if (clicked.getType() == org.bukkit.Material.ARROW) {
@@ -331,7 +175,7 @@ public class HomeMenuManager {
         return true;
     }
 
-    public static boolean handleAdminHomesMenuClick(org.bukkit.event.inventory.InventoryClickEvent event) {
+    public static boolean handleAdminHomesMenuClick(org.bukkit.event.inventory.InventoryClickEvent event, java.util.UUID targetUuid) {
         String title = event.getView().getTitle();
         if (!title.startsWith(org.bukkit.ChatColor.DARK_AQUA + "Homes of ")) return false;
         event.setCancelled(true);
@@ -344,18 +188,19 @@ public class HomeMenuManager {
             String prefix = org.bukkit.ChatColor.RED + "✖ " + org.bukkit.ChatColor.GOLD;
             if (displayName.startsWith(prefix)) {
                 String homeName = displayName.substring(prefix.length());
-                String playerName = title.replace(org.bukkit.ChatColor.DARK_AQUA + "Homes of ", "");
-                org.bukkit.OfflinePlayer target = org.bukkit.Bukkit.getOfflinePlayer(playerName);
-                if (target != null && target.getUniqueId() != null) {
-                    boolean ok = HomeManager.removeHome(target.getUniqueId(), homeName);
-                    if (ok) {
-                        org.homes.homes.utils.MessageUtils.sendSuccess(admin, "Home '" + homeName + "' has been deleted for " + playerName + ".");
-                        HomeManager.saveHomes();
-                        openAdminHomesMenu(admin, target.getUniqueId());
-                    } else {
-                        org.homes.homes.utils.MessageUtils.sendError(admin, "This home does not exist for the player!");
+                boolean ok = HomeManager.removeHome(targetUuid, homeName);
+                org.bukkit.OfflinePlayer owner = org.bukkit.Bukkit.getOfflinePlayer(targetUuid);
+                int refund = configManager != null ? configManager.getHomePrice() : 1000;
+                if (ok) {
+                    if (owner.isOnline()) {
+                        EconomyUtils.addMoney((org.bukkit.entity.Player) owner, refund);
+                        org.homes.homes.utils.MessageUtils.sendSuccess((org.bukkit.entity.Player) owner, "Ai primit refund pentru home-ul șters de admin!");
                     }
+                    org.homes.homes.utils.MessageUtils.sendSuccess(admin, "Home-ul a fost șters și banii au fost returnați owner-ului!");
+                } else {
+                    org.homes.homes.utils.MessageUtils.sendError(admin, "Acest home nu există!");
                 }
+                admin.closeInventory();
             }
         }
         return true;
