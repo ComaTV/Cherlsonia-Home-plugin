@@ -9,9 +9,17 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (HomeMenuManager.handleHomeMenuClick(event)) return;
-        if (HomeMenuManager.handleDeleteHomeMenuClick(event)) return;
-        if (HomeMenuManager.handleAdminPlayersMenuClick(event)) return;
-        if (HomeMenuManager.handleAdminHomesMenuClick(event)) return;
+        if (HomeMenuManager.handleAdminHomesMenuClick(event))
+            return;
+        if (HomeMenuManager.handleHomeMenuClick(event))
+            return;
+        if (HomeMenuManager.handleDeleteHomeMenuClick(event))
+            return;
+        if (HomeMenuManager.handleAdminPlayersMenuClick(event))
+            return;
+        HomeMenuManager.handleAdminHomesMenuClick(event);
+        org.homes.homes.homes.AdminHomeMenuManager.handleAdminEditHomesMenuClick(event);
+        org.homes.homes.homes.AdminHomeMenuManager.handleEditHomeMenuClick(event);
+        org.homes.homes.homes.AdminHomeMenuManager.handleSetMaxHomesMenuClick(event);
     }
-} 
+}

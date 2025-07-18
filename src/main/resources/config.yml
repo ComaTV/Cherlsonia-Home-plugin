@@ -10,3 +10,4 @@ messages:
 
 home:
   price: 100
+  default_home_duration: 1

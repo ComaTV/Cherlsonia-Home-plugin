@@ -24,16 +24,17 @@ public class CommandManager implements TabCompleter {
         commands.put("delhome", new DeleteHomeCommand());
         commands.put("homes", new HomesCommand(configManager));
         commands.put("adminhome", new AdminHomeCommand());
+        commands.put("extendhometime", new ExtendHomeTimeCommand());
     }
 
     public boolean executeCommand(CommandSender sender, Command command, String label, String[] args) {
         String commandName = command.getName().toLowerCase();
         CommandExecutor executor = commands.get(commandName);
-        
+
         if (executor != null) {
             return executor.execute(sender, args);
         }
-        
+
         return false;
     }
 
@@ -41,11 +42,11 @@ public class CommandManager implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         String commandName = command.getName().toLowerCase();
         CommandExecutor executor = commands.get(commandName);
-        
+
         if (executor instanceof TabCompletable) {
             return ((TabCompletable) executor).onTabComplete(sender, args);
         }
-        
+
         return new ArrayList<>();
     }
 
@@ -56,4 +57,4 @@ public class CommandManager implements TabCompleter {
     public interface TabCompletable {
         List<String> onTabComplete(CommandSender sender, String[] args);
     }
-} 
+}

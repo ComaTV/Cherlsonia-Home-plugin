@@ -16,6 +16,7 @@ public class HomeManager {
     private static final int MAX_HOMES = 10;
     private static final String HOMES_FILE = "homes.yml";
     private static Map<UUID, Map<String, Home>> playerHomes = new HashMap<>();
+    private static Map<UUID, Integer> playerMaxHomes = new HashMap<>();
     private static File file;
     private static YamlConfiguration config;
     private static JavaPlugin plugin;
@@ -32,10 +33,12 @@ public class HomeManager {
     public static class Home {
         private final String name;
         private final Location location;
+        private int durationMonths;
 
         public Home(String name, Location location) {
             this.name = name;
             this.location = location;
+            this.durationMonths = 0; // Default duration
         }
 
         public String getName() {
@@ -45,6 +48,14 @@ public class HomeManager {
         public Location getLocation() {
             return location;
         }
+
+        public int getDurationMonths() {
+            return durationMonths;
+        }
+
+        public void setDurationMonths(int durationMonths) {
+            this.durationMonths = durationMonths;
+        }
     }
 
     public static void init(File dataFolder) {
@@ -52,7 +63,8 @@ public class HomeManager {
         if (!file.exists()) {
             try {
                 file.createNewFile();
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
         config = YamlConfiguration.loadConfiguration(file);
         loadHomes();
@@ -60,7 +72,9 @@ public class HomeManager {
 
     public static void loadHomes() {
         playerHomes.clear();
-        if (config == null) return;
+        playerMaxHomes.clear();
+        if (config == null)
+            return;
         for (String uuidStr : config.getKeys(false)) {
             UUID uuid;
             try {
@@ -69,10 +83,15 @@ public class HomeManager {
                 continue;
             }
             Map<String, Home> homes = new HashMap<>();
+            int maxHomes = config.getInt(uuidStr + ".maxHomes", MAX_HOMES);
+            playerMaxHomes.put(uuid, maxHomes);
             for (String homeName : config.getConfigurationSection(uuidStr).getKeys(false)) {
+                if (homeName.equals("maxHomes"))
+                    continue;
                 String path = uuidStr + "." + homeName;
                 String world = config.getString(path + ".world");
-                if (world == null) continue;
+                if (world == null)
+                    continue;
                 double x = config.getDouble(path + ".x");
                 double y = config.getDouble(path + ".y");
                 double z = config.getDouble(path + ".z");
@@ -85,20 +104,26 @@ public class HomeManager {
                 } else {
                     continue;
                 }
-                homes.put(homeName, new Home(homeName, loc));
+                Home home = new Home(homeName, loc);
+                home.setDurationMonths(config.getInt(path + ".durationMonths", 0));
+                homes.put(homeName, home);
             }
             playerHomes.put(uuid, homes);
         }
     }
 
     public static void saveHomes() {
-        if (config == null) return;
+        if (config == null)
+            return;
         // Șterge toate cheile vechi
         for (String key : new HashSet<>(config.getKeys(false))) {
             config.set(key, null);
         }
         for (Map.Entry<UUID, Map<String, Home>> entry : playerHomes.entrySet()) {
             String uuidStr = entry.getKey().toString();
+            // Salvează maxHomes pentru fiecare jucător
+            int maxHomes = playerMaxHomes.getOrDefault(entry.getKey(), MAX_HOMES);
+            config.set(uuidStr + ".maxHomes", maxHomes);
             for (Map.Entry<String, Home> homeEntry : entry.getValue().entrySet()) {
                 Home home = homeEntry.getValue();
                 Location loc = home.getLocation();
@@ -109,22 +134,33 @@ public class HomeManager {
                 config.set(path + ".z", loc.getZ());
                 config.set(path + ".yaw", loc.getYaw());
                 config.set(path + ".pitch", loc.getPitch());
+                config.set(path + ".durationMonths", home.getDurationMonths());
             }
         }
         try {
             config.save(file);
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     public static boolean addHome(Player player, String name) {
         int homeCost = configManager != null ? configManager.getHomePrice() : 1000;
-        if (!EconomyUtils.hasMoney(player, homeCost)) return false;
+        if (!EconomyUtils.hasMoney(player, homeCost))
+            return false;
         UUID uuid = player.getUniqueId();
         Map<String, Home> homes = playerHomes.computeIfAbsent(uuid, k -> new HashMap<>());
-        if (homes.size() >= MAX_HOMES) return false;
-        if (homes.containsKey(name)) return false;
-        if (!EconomyUtils.removeMoney(player, homeCost)) return false;
-        homes.put(name, new Home(name, player.getLocation()));
+        if (homes.size() >= getMaxHomes(uuid)){
+            player.sendMessage("Limita de home-uri + "+ getMaxHomes(uuid));
+            return false;
+        }
+        if (homes.containsKey(name))
+            return false;
+        if (!EconomyUtils.removeMoney(player, homeCost))
+            return false;
+        Home home = new Home(name, player.getLocation());
+        int defaultDuration = configManager != null ? configManager.getDefaultHomeDuration() : 1;
+        home.setDurationMonths(defaultDuration);
+        homes.put(name, home);
         saveHomes();
         return true;
     }
@@ -140,13 +176,15 @@ public class HomeManager {
 
     public static Home getHome(Player player, String name) {
         Map<String, Home> homes = playerHomes.get(player.getUniqueId());
-        if (homes == null) return null;
+        if (homes == null)
+            return null;
         return homes.get(name);
     }
 
     public static List<Home> getHomes(Player player) {
         Map<String, Home> homes = playerHomes.get(player.getUniqueId());
-        if (homes == null) return Collections.emptyList();
+        if (homes == null)
+            return Collections.emptyList();
         return new ArrayList<>(homes.values());
     }
 
@@ -157,4 +195,67 @@ public class HomeManager {
     public static Map<String, Home> getHomes(UUID uuid) {
         return playerHomes.getOrDefault(uuid, Collections.emptyMap());
     }
-} 
+
+    public static int getMaxHomes(UUID uuid) {
+        return playerMaxHomes.getOrDefault(uuid, MAX_HOMES);
+    }
+
+    public static void setMaxHomes(UUID uuid, int max) {
+        playerMaxHomes.put(uuid, max);
+        saveHomes(); // Save the new max homes
+    }
+
+    public static int getHomeDuration(UUID uuid, String homeName) {
+        Map<String, Home> homes = playerHomes.get(uuid);
+        if (homes == null)
+            return 0;
+        Home home = homes.get(homeName);
+        return home != null ? home.getDurationMonths() : 0;
+    }
+
+    public static void setHomeDuration(UUID uuid, String homeName, int months) {
+        Map<String, Home> homes = playerHomes.computeIfAbsent(uuid, k -> new HashMap<>());
+        Home home = homes.get(homeName);
+        if (home != null) {
+            home.setDurationMonths(months);
+            saveHomes();
+        }
+    }
+
+    // Scade cu 1 durata fiecărui home, șterge home-urile cu durata 0 și notifică
+    // jucătorii
+    public static void decrementHomeDurationsAndNotify() {
+        List<String> deleted = new ArrayList<>();
+        for (Map.Entry<UUID, Map<String, Home>> entry : playerHomes.entrySet()) {
+            UUID uuid = entry.getKey();
+            Map<String, Home> homes = entry.getValue();
+            Iterator<Map.Entry<String, Home>> it = homes.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry<String, Home> homeEntry = it.next();
+                Home home = homeEntry.getValue();
+                int duration = home.getDurationMonths();
+                if (duration > 0) {
+                    home.setDurationMonths(duration - 1);
+                    if (duration - 1 == 1) {
+                        // Notifică jucătorul că home-ul e în ultima lună
+                        Player player = Bukkit.getPlayer(uuid);
+                        if (player != null && player.isOnline()) {
+                            org.homes.homes.utils.MessageUtils.sendInfo(player, "Home-ul '" + home.getName()
+                                    + "' este în ultima sa lună și va expira dacă nu este prelungit!");
+                        }
+                    } else if (duration - 1 == 0) {
+                        // Șterge home-ul și notifică
+                        it.remove();
+                        Player player = Bukkit.getPlayer(uuid);
+                        if (player != null && player.isOnline()) {
+                            org.homes.homes.utils.MessageUtils.sendError(player,
+                                    "Home-ul '" + home.getName() + "' a expirat și a fost șters!");
+                        }
+                        deleted.add(home.getName());
+                    }
+                }
+            }
+        }
+        saveHomes();
+    }
+}
