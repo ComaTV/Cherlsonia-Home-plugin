@@ -48,11 +48,6 @@
 
 ## 🚀 Installation
 
-### Prerequisites
-- **Bukkit/Spigot 1.21+** server
-- **Java 8+** runtime
-- **Scoreboard economy** system (built-in)
-
 ### Installation Steps
 1. **Download** the plugin JAR file
 2. **Place** the JAR in your server's `plugins/` folder
