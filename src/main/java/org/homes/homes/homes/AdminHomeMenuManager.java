@@ -133,7 +133,7 @@ public class AdminHomeMenuManager {
         String playerName = Bukkit.getOfflinePlayer(targetUuid).getName();
         int currentDuration = HomeManager.getHomeDuration(targetUuid, homeName);
         Inventory inv = Bukkit.createInventory(null, 27,
-                ChatColor.DARK_AQUA + "Edit Home: " + homeName + " of " + playerName);
+                ChatColor.DARK_AQUA + "Edit Home: " + homeName);
 
         ItemStack editBtn = new ItemStack(Material.CLOCK);
         ItemMeta editMeta = editBtn.getItemMeta();
@@ -177,13 +177,20 @@ public class AdminHomeMenuManager {
             return true;
 
         String titleNoColors = ChatColor.stripColor(title);
-        String rest = titleNoColors.replaceFirst("Edit Home: ", "");
-        int idx = rest.lastIndexOf(" of ");
-        String homeName = rest.substring(0, idx);
-        String playerName = rest.substring(idx + 4);
-        org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+        String homeName = titleNoColors.replaceFirst("Edit Home: ", "");
+
+        // Find the player who owns this home by searching through all players
+        org.bukkit.OfflinePlayer target = null;
+        for (UUID uuid : HomeManager.getPlayersWithHomes()) {
+            if (HomeManager.getHomes(uuid).containsKey(homeName)) {
+                target = Bukkit.getOfflinePlayer(uuid);
+                break;
+            }
+        }
         if (target == null || target.getUniqueId() == null)
             return true;
+
+        String playerName = target.getName();
 
         if (clicked.getType() == Material.ARROW) {
             String displayName = clicked.getItemMeta().getDisplayName();
@@ -214,6 +221,7 @@ public class AdminHomeMenuManager {
 
     public static void openAdminHomeDurationMenu(Player admin, UUID targetUuid, String homeName) {
         int currentDuration = HomeManager.getHomeDuration(targetUuid, homeName);
+        String playerName = Bukkit.getOfflinePlayer(targetUuid).getName();
         Inventory inv = Bukkit.createInventory(null, 27,
                 ChatColor.BLUE + "Set Duration for " + homeName + " (Months: " + currentDuration
                         + ")");
@@ -259,12 +267,20 @@ public class AdminHomeMenuManager {
 
         String titleNoColors = ChatColor.stripColor(title);
         String rest = titleNoColors.replaceFirst("Set Duration for ", "");
-        int idx = rest.lastIndexOf(" of ");
-        String homeName = rest.substring(0, idx);
-        String playerName = rest.substring(idx + 4).split(" \\(Current:")[0];
-        org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+        String homeName = rest.split(" \\(Months:")[0];
+
+        // Find the player who owns this home by searching through all players
+        org.bukkit.OfflinePlayer target = null;
+        for (UUID uuid : HomeManager.getPlayersWithHomes()) {
+            if (HomeManager.getHomes(uuid).containsKey(homeName)) {
+                target = Bukkit.getOfflinePlayer(uuid);
+                break;
+            }
+        }
         if (target == null || target.getUniqueId() == null)
             return true;
+
+        String playerName = target.getName();
 
         if (clicked.getType() == Material.ARROW) {
             String displayName = clicked.getItemMeta().getDisplayName();
@@ -364,7 +380,7 @@ public class AdminHomeMenuManager {
         int currentMax = HomeManager.getMaxHomes(targetUuid);
         String playerName = Bukkit.getOfflinePlayer(targetUuid).getName();
         Inventory inv = Bukkit.createInventory(null, 27,
-                ChatColor.DARK_GREEN + "Edit Max Homes for (Current: " + currentMax + ")");
+                ChatColor.DARK_GREEN + "Set Max Homes (Current: " + currentMax + ")");
 
         for (int i = 0; i < 10; i++) {
             ItemStack item = new ItemStack(Material.PAPER);
@@ -395,7 +411,7 @@ public class AdminHomeMenuManager {
     public static boolean handleMaxHomesEditMenuClick(InventoryClickEvent event) {
         String title = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
                 .serialize(event.getView().title());
-        if (!title.startsWith(ChatColor.DARK_GREEN + "Edit Max Homes for "))
+        if (!title.startsWith(ChatColor.DARK_GREEN + "Set Max Homes "))
             return false;
         event.setCancelled(true);
         if (event.getClickedInventory() == null
@@ -407,8 +423,23 @@ public class AdminHomeMenuManager {
             return true;
 
         String titleNoColors = ChatColor.stripColor(title);
-        String playerName = titleNoColors.replaceFirst("Edit Max Homes for ", "").split(" \\(Current:")[0];
-        org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+        // Extract current max from title
+        String currentMaxStr = titleNoColors.replaceFirst("Set Max Homes \\(Current: ", "").replaceFirst("\\)", "");
+        int currentMax = 1;
+        try {
+            currentMax = Integer.parseInt(currentMaxStr);
+        } catch (NumberFormatException e) {
+            return true;
+        }
+
+        // Find the player with this current max homes value
+        org.bukkit.OfflinePlayer target = null;
+        for (UUID uuid : HomeManager.getPlayersWithHomes()) {
+            if (HomeManager.getMaxHomes(uuid) == currentMax) {
+                target = Bukkit.getOfflinePlayer(uuid);
+                break;
+            }
+        }
         if (target == null || target.getUniqueId() == null)
             return true;
 
@@ -427,7 +458,7 @@ public class AdminHomeMenuManager {
                 int newMax = slot + 1;
                 HomeManager.setMaxHomes(target.getUniqueId(), newMax);
                 org.homes.homes.utils.MessageUtils.sendSuccess(player,
-                        "Maximum homes for " + playerName + " set to " + newMax + "!");
+                        "Maximum homes set to " + newMax + "!");
                 openMaxHomesEditMenu(player, target.getUniqueId());
                 return true;
             }
@@ -546,7 +577,7 @@ public class AdminHomeMenuManager {
         String playerName = Bukkit.getOfflinePlayer(targetUuid).getName();
         int currentDuration = HomeManager.getHomeDuration(targetUuid, homeName);
         Inventory inv = Bukkit.createInventory(null, 27,
-                ChatColor.BLUE + "Edit Home: " + homeName + " of " + playerName);
+                ChatColor.BLUE + "Edit Home: " + homeName);
         for (int i = 0; i < 10; i++) {
             ItemStack item = new ItemStack(Material.CLOCK);
             ItemMeta meta = item.getItemMeta();
@@ -590,13 +621,20 @@ public class AdminHomeMenuManager {
             return true;
         int slot = event.getSlot();
         String titleNoColors = ChatColor.stripColor(title);
-        String rest = titleNoColors.replaceFirst("Edit Home: ", "");
-        int idx = rest.lastIndexOf(" of ");
-        String homeName = rest.substring(0, idx);
-        String playerName = rest.substring(idx + 4);
-        org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+        String homeName = titleNoColors.replaceFirst("Edit Home: ", "");
+
+        // Find the player who owns this home by searching through all players
+        org.bukkit.OfflinePlayer target = null;
+        for (UUID uuid : HomeManager.getPlayersWithHomes()) {
+            if (HomeManager.getHomes(uuid).containsKey(homeName)) {
+                target = Bukkit.getOfflinePlayer(uuid);
+                break;
+            }
+        }
         if (target == null || target.getUniqueId() == null)
             return true;
+
+        String playerName = target.getName();
         if (clicked.getType() == Material.ARROW) {
             String displayName = clicked.getItemMeta().getDisplayName();
             if (displayName.equals(ChatColor.YELLOW + "Back")) {
@@ -635,7 +673,7 @@ public class AdminHomeMenuManager {
         String playerName = Bukkit.getOfflinePlayer(targetUuid).getName();
         int currentMax = HomeManager.getMaxHomes(targetUuid);
         Inventory inv = Bukkit.createInventory(null, 27,
-                ChatColor.DARK_GREEN + "Set Max Homes for " + playerName + " (Current: " + currentMax + ")");
+                ChatColor.DARK_GREEN + "Set Max Homes (Current: " + currentMax + ")");
         for (int i = 0; i < 10; i++) {
             ItemStack item = new ItemStack(Material.PAPER);
             ItemMeta meta = item.getItemMeta();
@@ -661,7 +699,7 @@ public class AdminHomeMenuManager {
     public static boolean handleSetMaxHomesMenuClick(InventoryClickEvent event) {
         String title = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
                 .serialize(event.getView().title());
-        if (!title.startsWith(ChatColor.DARK_GREEN + "Set Max Homes for "))
+        if (!title.startsWith(ChatColor.DARK_GREEN + "Set Max Homes "))
             return false;
         event.setCancelled(true);
         if (event.getClickedInventory() == null
@@ -672,10 +710,25 @@ public class AdminHomeMenuManager {
         if (clicked == null || !clicked.hasItemMeta())
             return true;
         String titleNoColors = ChatColor.stripColor(title);
-        String playerName = titleNoColors.replaceFirst("Set Max Homes for ", "").split(" \\(Current:")[0];
-        org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+        String currentMaxStr = titleNoColors.replaceFirst("Set Max Homes \\(Current: ", "").replaceFirst("\\)", "");
+        int currentMax = 1;
+        try {
+            currentMax = Integer.parseInt(currentMaxStr);
+        } catch (NumberFormatException e) {
+            return true;
+        }
+
+        org.bukkit.OfflinePlayer target = null;
+        for (UUID uuid : HomeManager.getPlayersWithHomes()) {
+            if (HomeManager.getMaxHomes(uuid) == currentMax) {
+                target = Bukkit.getOfflinePlayer(uuid);
+                break;
+            }
+        }
         if (target == null || target.getUniqueId() == null)
             return true;
+
+        String playerName = target.getName();
         if (clicked.getType() == Material.ARROW) {
             String displayName = clicked.getItemMeta().getDisplayName();
             if (displayName.equals(ChatColor.YELLOW + "Back")) {
@@ -702,7 +755,7 @@ public class AdminHomeMenuManager {
         int pricePerMonth = configManager.getHomePrice();
         int refundAmount = currentDuration * pricePerMonth;
         Inventory inv = Bukkit.createInventory(null, 27,
-                ChatColor.RED + "Are you sure you want to delete" + homeName + " ?");
+                ChatColor.RED + "Confirm Deletion for " + homeName);
 
         ItemStack info = new ItemStack(Material.PAPER);
         ItemMeta infoMeta = info.getItemMeta();
@@ -749,13 +802,20 @@ public class AdminHomeMenuManager {
             return true;
         if (clicked.getType() == Material.EMERALD) {
             String titleNoColors = ChatColor.stripColor(title);
-            String rest = titleNoColors.replaceFirst("Confirm Deletion for ", "");
-            int idx = rest.lastIndexOf(" of ");
-            String homeName = rest.substring(0, idx);
-            String playerName = rest.substring(idx + 4);
-            org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+            String homeName = titleNoColors.replaceFirst("Confirm Deletion for ", "");
+
+            // Find the player who owns this home by searching through all players
+            org.bukkit.OfflinePlayer target = null;
+            for (UUID uuid : HomeManager.getPlayersWithHomes()) {
+                if (HomeManager.getHomes(uuid).containsKey(homeName)) {
+                    target = Bukkit.getOfflinePlayer(uuid);
+                    break;
+                }
+            }
             if (target == null || target.getUniqueId() == null)
                 return true;
+
+            String playerName = target.getName();
             HomeManager.Home home = HomeManager.getHomes(target.getUniqueId()).get(homeName);
             if (home == null) {
                 org.homes.homes.utils.MessageUtils.sendError(admin, "This home does not exist!");
@@ -781,11 +841,16 @@ public class AdminHomeMenuManager {
             String displayName = clicked.getItemMeta().getDisplayName();
             if (displayName.equals(ChatColor.YELLOW + "Cancel")) {
                 String titleNoColors = ChatColor.stripColor(title);
-                String rest = titleNoColors.replaceFirst("Confirm Deletion for ", "");
-                int idx = rest.lastIndexOf(" of ");
-                String homeName = rest.substring(0, idx);
-                String playerName = rest.substring(idx + 4);
-                org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+                String homeName = titleNoColors.replaceFirst("Confirm Deletion for ", "");
+
+                // Find the player who owns this home by searching through all players
+                org.bukkit.OfflinePlayer target = null;
+                for (UUID uuid : HomeManager.getPlayersWithHomes()) {
+                    if (HomeManager.getHomes(uuid).containsKey(homeName)) {
+                        target = Bukkit.getOfflinePlayer(uuid);
+                        break;
+                    }
+                }
                 if (target != null && target.getUniqueId() != null) {
                     openAdminHomeEditMenu(admin, target.getUniqueId(), homeName);
                 }
