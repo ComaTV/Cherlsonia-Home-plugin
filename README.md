@@ -14,10 +14,6 @@
 11. [API Reference](#api-reference)
 12. [Troubleshooting](#troubleshooting)
 
-## 🎯 Overview
-
-The **Home System Plugin** is a comprehensive Bukkit/Spigot plugin that allows players to create, manage, and teleport to multiple homes with an advanced GUI system. The plugin features an economy integration, admin management tools, and a sophisticated menu system for both players and administrators.
-
 ### Key Highlights:
 - **Multi-home system** with configurable limits
 - **Economy integration** with configurable costs
