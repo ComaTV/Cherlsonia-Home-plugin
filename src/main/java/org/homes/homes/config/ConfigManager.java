@@ -62,8 +62,4 @@ public class ConfigManager {
     public int getHomePrice() {
         return config.getInt("home.price", 1000);
     }
-
-    public int getDefaultHomeDuration() {
-        return config.getInt("home.default_home_duration", 1);
-    }
 }

@@ -17,6 +17,11 @@ public class DeleteHomeCommand implements CommandManager.CommandExecutor {
             return true;
         }
         Player player = (Player) sender;
+        if (!player.hasPermission("home_acces")
+                || !org.homes.homes.homes.HomeManager.hasHomeAccess(player.getUniqueId())) {
+            MessageUtils.sendError(sender, "You do not have access to home commands!");
+            return true;
+        }
         if (args.length == 0) {
             HomeMenuManager.openDeleteHomeMenu(player, 1);
             return true;
@@ -31,17 +36,9 @@ public class DeleteHomeCommand implements CommandManager.CommandExecutor {
             MessageUtils.sendError(sender, "This home does not exist!");
             return true;
         }
-
-        ConfigManager configManager = org.homes.homes.Main.getInstance().getConfigManager();
-        int pricePerMonth = configManager.getHomePrice();
-        int remainingMonths = home.getDurationMonths();
-        int refundAmount = remainingMonths * pricePerMonth;
-
         boolean ok = HomeManager.removeHome(player.getUniqueId(), args[0]);
         if (ok) {
-            EconomyUtils.addMoney(player, refundAmount);
-            MessageUtils.sendSuccess(sender, "Home has been deleted and " + refundAmount + " coins refunded for "
-                    + remainingMonths + " remaining months!");
+            MessageUtils.sendSuccess(sender, "Home has been deleted!");
         } else {
             MessageUtils.sendError(sender, "Failed to delete home!");
         }

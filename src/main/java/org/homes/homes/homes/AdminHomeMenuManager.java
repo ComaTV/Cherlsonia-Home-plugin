@@ -37,7 +37,6 @@ public class AdminHomeMenuManager {
             ItemMeta meta = item.getItemMeta();
             meta.setDisplayName(ChatColor.GOLD + home.getName());
             meta.setLore(java.util.Arrays.asList(
-                    ChatColor.GRAY + "Duration: " + home.getDurationMonths() + " months",
                     ChatColor.GRAY + "Click to edit/delete"));
             item.setItemMeta(meta);
             inv.setItem(i, item);
@@ -60,6 +59,15 @@ public class AdminHomeMenuManager {
                 ChatColor.GRAY + "homes per player"));
         maxHomesBtn.setItemMeta(maxHomesMeta);
         inv.setItem(49, maxHomesBtn);
+        // Buton nou pentru setare luni acces
+        ItemStack accessMonthsBtn = new ItemStack(Material.CLOCK);
+        ItemMeta accessMonthsMeta = accessMonthsBtn.getItemMeta();
+        accessMonthsMeta.setDisplayName(ChatColor.AQUA + "Set Home Access Months");
+        accessMonthsMeta.setLore(java.util.Arrays.asList(
+                ChatColor.GRAY + "Click to set number of months",
+                ChatColor.GRAY + "for home command access"));
+        accessMonthsBtn.setItemMeta(accessMonthsMeta);
+        inv.setItem(48, accessMonthsBtn);
         admin.openInventory(inv);
     }
 
@@ -113,6 +121,19 @@ public class AdminHomeMenuManager {
                 return true;
             }
         }
+        if (clicked.getType() == Material.CLOCK) {
+            String displayName = clicked.getItemMeta().getDisplayName();
+            if (displayName.equals(ChatColor.AQUA + "Set Home Access Months")) {
+                String titleNoColorsClock = ChatColor.stripColor(title);
+                String namePart = titleNoColorsClock.replaceFirst("Homes of ", "");
+                String playerName = namePart.split(" \\(")[0];
+                org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+                if (target != null && target.getUniqueId() != null) {
+                    openSetHomeAccessMonthsMenu(player, target.getUniqueId());
+                }
+                return true;
+            }
+        }
         if (clicked.getType() == Material.OAK_DOOR) {
             String displayName = clicked.getItemMeta().getDisplayName();
             String homeName = ChatColor.stripColor(displayName);
@@ -121,189 +142,12 @@ public class AdminHomeMenuManager {
             String playerName = namePart.split(" \\(")[0];
             org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
             if (target != null && target.getUniqueId() != null) {
-                openAdminHomeEditMenu(player, target.getUniqueId(), homeName);
+                openAdminHomeDeleteConfirmMenu(player, target.getUniqueId(), homeName);
             }
             return true;
         }
         return true;
 
-    }
-
-    public static void openAdminHomeEditMenu(Player admin, UUID targetUuid, String homeName) {
-        String playerName = Bukkit.getOfflinePlayer(targetUuid).getName();
-        int currentDuration = HomeManager.getHomeDuration(targetUuid, homeName);
-        Inventory inv = Bukkit.createInventory(null, 27,
-                ChatColor.DARK_AQUA + "Edit Home: " + homeName);
-
-        ItemStack editBtn = new ItemStack(Material.CLOCK);
-        ItemMeta editMeta = editBtn.getItemMeta();
-        editMeta.setDisplayName(ChatColor.YELLOW + "Edit Duration");
-        editMeta.setLore(java.util.Arrays.asList(
-                ChatColor.GRAY + "Current: " + currentDuration + " months",
-                ChatColor.GRAY + "Click to change duration"));
-        editBtn.setItemMeta(editMeta);
-        inv.setItem(11, editBtn);
-
-        ItemStack deleteBtn = new ItemStack(Material.BARRIER);
-        ItemMeta deleteMeta = deleteBtn.getItemMeta();
-        deleteMeta.setDisplayName(ChatColor.RED + "Delete Home");
-        deleteMeta.setLore(java.util.Arrays.asList(
-                ChatColor.GRAY + "Click to delete this home",
-                ChatColor.GRAY + "Player will be refunded"));
-        deleteBtn.setItemMeta(deleteMeta);
-        inv.setItem(15, deleteBtn);
-
-        ItemStack back = new ItemStack(Material.ARROW);
-        ItemMeta backMeta = back.getItemMeta();
-        backMeta.setDisplayName(ChatColor.YELLOW + "Back to Homes");
-        back.setItemMeta(backMeta);
-        inv.setItem(22, back);
-
-        admin.openInventory(inv);
-    }
-
-    public static boolean handleAdminHomeEditMenuClick(InventoryClickEvent event) {
-        String title = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
-                .serialize(event.getView().title());
-        if (!title.startsWith(ChatColor.DARK_AQUA + "Edit Home: "))
-            return false;
-        event.setCancelled(true);
-        if (event.getClickedInventory() == null
-                || !event.getClickedInventory().equals(event.getView().getTopInventory()))
-            return true;
-        Player admin = (Player) event.getWhoClicked();
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta())
-            return true;
-
-        String titleNoColors = ChatColor.stripColor(title);
-        String homeName = titleNoColors.replaceFirst("Edit Home: ", "");
-
-        // Find the player who owns this home by searching through all players
-        org.bukkit.OfflinePlayer target = null;
-        for (UUID uuid : HomeManager.getPlayersWithHomes()) {
-            if (HomeManager.getHomes(uuid).containsKey(homeName)) {
-                target = Bukkit.getOfflinePlayer(uuid);
-                break;
-            }
-        }
-        if (target == null || target.getUniqueId() == null)
-            return true;
-
-        String playerName = target.getName();
-
-        if (clicked.getType() == Material.ARROW) {
-            String displayName = clicked.getItemMeta().getDisplayName();
-            if (displayName.equals(ChatColor.YELLOW + "Back to Homes")) {
-                openAdminHomesMenu(admin, target.getUniqueId(), 1);
-                return true;
-            }
-        }
-
-        if (clicked.getType() == Material.CLOCK) {
-            String displayName = clicked.getItemMeta().getDisplayName();
-            if (displayName.equals(ChatColor.YELLOW + "Edit Duration")) {
-                openAdminHomeDurationMenu(admin, target.getUniqueId(), homeName);
-                return true;
-            }
-        }
-
-        if (clicked.getType() == Material.BARRIER) {
-            String displayName = clicked.getItemMeta().getDisplayName();
-            if (displayName.equals(ChatColor.RED + "Delete Home")) {
-                openAdminHomeDeleteConfirmMenu(admin, target.getUniqueId(), homeName);
-                return true;
-            }
-        }
-
-        return true;
-    }
-
-    public static void openAdminHomeDurationMenu(Player admin, UUID targetUuid, String homeName) {
-        int currentDuration = HomeManager.getHomeDuration(targetUuid, homeName);
-        String playerName = Bukkit.getOfflinePlayer(targetUuid).getName();
-        Inventory inv = Bukkit.createInventory(null, 27,
-                ChatColor.BLUE + "Set Duration for " + homeName + " (Months: " + currentDuration
-                        + ")");
-
-        for (int i = 0; i < 10; i++) {
-            ItemStack item = new ItemStack(Material.CLOCK);
-            ItemMeta meta = item.getItemMeta();
-            int value = i + 1;
-            if (value == currentDuration) {
-                meta.setDisplayName(ChatColor.GREEN + "✓ " + ChatColor.GOLD + value + " Months");
-                item.setType(Material.EMERALD);
-            } else {
-                meta.setDisplayName(ChatColor.YELLOW + "Set to " + ChatColor.GOLD + value + " Months");
-            }
-            meta.setLore(java.util.Collections
-                    .singletonList(ChatColor.GRAY + "Click to set duration to " + value + " months"));
-            item.setItemMeta(meta);
-            inv.setItem(i, item);
-        }
-
-        ItemStack back = new ItemStack(Material.ARROW);
-        ItemMeta backMeta = back.getItemMeta();
-        backMeta.setDisplayName(ChatColor.YELLOW + "Back");
-        back.setItemMeta(backMeta);
-        inv.setItem(18, back);
-
-        admin.openInventory(inv);
-    }
-
-    public static boolean handleAdminHomeDurationMenuClick(InventoryClickEvent event) {
-        String title = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
-                .serialize(event.getView().title());
-        if (!title.startsWith(ChatColor.BLUE + "Set Duration for "))
-            return false;
-        event.setCancelled(true);
-        if (event.getClickedInventory() == null
-                || !event.getClickedInventory().equals(event.getView().getTopInventory()))
-            return true;
-        Player admin = (Player) event.getWhoClicked();
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta())
-            return true;
-
-        String titleNoColors = ChatColor.stripColor(title);
-        String rest = titleNoColors.replaceFirst("Set Duration for ", "");
-        String homeName = rest.split(" \\(Months:")[0];
-
-        // Find the player who owns this home by searching through all players
-        org.bukkit.OfflinePlayer target = null;
-        for (UUID uuid : HomeManager.getPlayersWithHomes()) {
-            if (HomeManager.getHomes(uuid).containsKey(homeName)) {
-                target = Bukkit.getOfflinePlayer(uuid);
-                break;
-            }
-        }
-        if (target == null || target.getUniqueId() == null)
-            return true;
-
-        String playerName = target.getName();
-
-        if (clicked.getType() == Material.ARROW) {
-            String displayName = clicked.getItemMeta().getDisplayName();
-            if (displayName.equals(ChatColor.YELLOW + "Back")) {
-                openAdminHomeEditMenu(admin, target.getUniqueId(), homeName);
-                return true;
-            }
-        }
-
-        if (clicked.getType() == Material.CLOCK || clicked.getType() == Material.EMERALD) {
-            int slot = event.getSlot();
-            if (slot >= 0 && slot < 10) {
-                int newDuration = slot + 1;
-                HomeManager.setHomeDuration(target.getUniqueId(), homeName, newDuration);
-                org.homes.homes.utils.MessageUtils.sendSuccess(admin,
-                        "Duration for home '" + homeName + "' of " + playerName + " set to " + newDuration
-                                + " months!");
-                openAdminHomeDurationMenu(admin, target.getUniqueId(), homeName);
-                return true;
-            }
-        }
-
-        return true;
     }
 
     public static void openAdminPlayersMenu(Player admin, int page) {
@@ -483,8 +327,7 @@ public class AdminHomeMenuManager {
             ItemMeta meta = item.getItemMeta();
             meta.setDisplayName(ChatColor.GOLD + home.getName());
             meta.setLore(java.util.Arrays.asList(
-                    ChatColor.GRAY + "Duration: " + home.getDurationMonths() + " months",
-                    ChatColor.GRAY + "Click to edit duration"));
+                    ChatColor.GRAY + "Click to delete"));
             item.setItemMeta(meta);
             inv.setItem(i, item);
         }
@@ -566,105 +409,9 @@ public class AdminHomeMenuManager {
             String playerName = namePart.split(" \\(")[0];
             org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
             if (target != null && target.getUniqueId() != null) {
-                openAdminHomeEditMenu(admin, target.getUniqueId(), homeName);
+                openAdminHomeDeleteConfirmMenu(admin, target.getUniqueId(), homeName);
             }
             return true;
-        }
-        return true;
-    }
-
-    public static void openEditHomeMenu(Player admin, UUID targetUuid, String homeName) {
-        String playerName = Bukkit.getOfflinePlayer(targetUuid).getName();
-        int currentDuration = HomeManager.getHomeDuration(targetUuid, homeName);
-        Inventory inv = Bukkit.createInventory(null, 27,
-                ChatColor.BLUE + "Edit Home: " + homeName);
-        for (int i = 0; i < 10; i++) {
-            ItemStack item = new ItemStack(Material.CLOCK);
-            ItemMeta meta = item.getItemMeta();
-            int value = i + 1;
-            if (value == currentDuration) {
-                meta.setDisplayName(ChatColor.GREEN + "✓ " + ChatColor.GOLD + value + " Months");
-                item.setType(Material.EMERALD);
-            } else {
-                meta.setDisplayName(ChatColor.YELLOW + "Set to " + ChatColor.GOLD + value + " Months");
-            }
-            meta.setLore(java.util.Collections
-                    .singletonList(ChatColor.GRAY + "Click to set duration to " + value + " months"));
-            item.setItemMeta(meta);
-            inv.setItem(i, item);
-        }
-        ItemStack back = new ItemStack(Material.ARROW);
-        ItemMeta backMeta = back.getItemMeta();
-        backMeta.setDisplayName(ChatColor.YELLOW + "Back");
-        back.setItemMeta(backMeta);
-        inv.setItem(18, back);
-        ItemStack del = new ItemStack(Material.BARRIER);
-        ItemMeta delMeta = del.getItemMeta();
-        delMeta.setDisplayName(ChatColor.RED + "Delete Home");
-        del.setItemMeta(delMeta);
-        inv.setItem(26, del);
-        admin.openInventory(inv);
-    }
-
-    public static boolean handleEditHomeMenuClick(InventoryClickEvent event) {
-        String title = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
-                .serialize(event.getView().title());
-        if (!title.startsWith(ChatColor.BLUE + "Edit Home: "))
-            return false;
-        event.setCancelled(true);
-        if (event.getClickedInventory() == null
-                || !event.getClickedInventory().equals(event.getView().getTopInventory()))
-            return true;
-        Player admin = (Player) event.getWhoClicked();
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta())
-            return true;
-        int slot = event.getSlot();
-        String titleNoColors = ChatColor.stripColor(title);
-        String homeName = titleNoColors.replaceFirst("Edit Home: ", "");
-
-        // Find the player who owns this home by searching through all players
-        org.bukkit.OfflinePlayer target = null;
-        for (UUID uuid : HomeManager.getPlayersWithHomes()) {
-            if (HomeManager.getHomes(uuid).containsKey(homeName)) {
-                target = Bukkit.getOfflinePlayer(uuid);
-                break;
-            }
-        }
-        if (target == null || target.getUniqueId() == null)
-            return true;
-
-        String playerName = target.getName();
-        if (clicked.getType() == Material.ARROW) {
-            String displayName = clicked.getItemMeta().getDisplayName();
-            if (displayName.equals(ChatColor.YELLOW + "Back")) {
-                openAdminEditHomesMenu(admin, target.getUniqueId(), 1);
-                return true;
-            }
-        }
-        if (clicked.getType() == Material.BARRIER) {
-            String displayName = clicked.getItemMeta().getDisplayName();
-            if (displayName.equals(ChatColor.RED + "Delete Home")) {
-                boolean ok = HomeManager.removeHome(target.getUniqueId(), homeName);
-                if (ok) {
-                    admin.sendMessage("Duration for home '" + homeName + "' of player '" + playerName
-                            + "' has been deleted.");
-                    openAdminEditHomesMenu(admin, target.getUniqueId(), 1);
-                } else {
-                    org.homes.homes.utils.MessageUtils.sendError(admin, "This home does not exist!");
-                }
-                return true;
-            }
-        }
-        if (clicked.getType() == Material.CLOCK || clicked.getType() == Material.EMERALD) {
-            if (slot >= 0 && slot < 10) {
-                int newDuration = slot + 1;
-                HomeManager.setHomeDuration(target.getUniqueId(), homeName, newDuration);
-                admin.sendMessage("Duration for home '" + homeName + "' of player '" + playerName
-                        + "' has been set to " + newDuration + " months.");
-                openEditHomeMenu(admin, target.getUniqueId(), homeName);
-                return true;
-            }
         }
         return true;
     }
@@ -751,9 +498,6 @@ public class AdminHomeMenuManager {
 
     public static void openAdminHomeDeleteConfirmMenu(Player admin, UUID targetUuid, String homeName) {
         String playerName = Bukkit.getOfflinePlayer(targetUuid).getName();
-        int currentDuration = HomeManager.getHomeDuration(targetUuid, homeName);
-        int pricePerMonth = configManager.getHomePrice();
-        int refundAmount = currentDuration * pricePerMonth;
         Inventory inv = Bukkit.createInventory(null, 27,
                 ChatColor.RED + "Confirm Deletion for " + homeName);
 
@@ -762,9 +506,7 @@ public class AdminHomeMenuManager {
         infoMeta.setDisplayName(ChatColor.YELLOW + "Home Information");
         infoMeta.setLore(java.util.Arrays.asList(
                 ChatColor.GRAY + "Home: " + ChatColor.WHITE + homeName,
-                ChatColor.GRAY + "Player: " + ChatColor.WHITE + playerName,
-                ChatColor.GRAY + "Duration: " + ChatColor.WHITE + currentDuration + " months",
-                ChatColor.GRAY + "Refund: " + ChatColor.GREEN + refundAmount + " coins"));
+                ChatColor.GRAY + "Player: " + ChatColor.WHITE + playerName));
         info.setItemMeta(infoMeta);
         inv.setItem(4, info);
 
@@ -772,8 +514,7 @@ public class AdminHomeMenuManager {
         ItemMeta confirmMeta = confirm.getItemMeta();
         confirmMeta.setDisplayName(ChatColor.GREEN + "Confirm Deletion");
         confirmMeta.setLore(java.util.Arrays.asList(
-                ChatColor.GRAY + "Click to delete this home",
-                ChatColor.GRAY + "Player will be refunded " + refundAmount + " coins"));
+                ChatColor.GRAY + "Click to delete this home"));
         confirm.setItemMeta(confirmMeta);
         inv.setItem(11, confirm);
 
@@ -821,17 +562,13 @@ public class AdminHomeMenuManager {
                 org.homes.homes.utils.MessageUtils.sendError(admin, "This home does not exist!");
                 return true;
             }
-            int pricePerMonth = configManager.getHomePrice();
-            int remainingMonths = home.getDurationMonths();
-            int refundAmount = remainingMonths * pricePerMonth;
             boolean ok = HomeManager.removeHome(target.getUniqueId(), homeName);
             if (ok) {
                 org.bukkit.entity.Player targetPlayer = Bukkit.getPlayer(target.getUniqueId());
                 if (targetPlayer != null && targetPlayer.isOnline()) {
-                    org.homes.homes.utils.EconomyUtils.addMoney(targetPlayer, refundAmount);
+                    org.homes.homes.utils.EconomyUtils.addMoney(targetPlayer, 0); // No refund for duration
                 }
-                org.homes.homes.utils.MessageUtils.sendSuccess(admin, "Home has been deleted and " + refundAmount
-                        + " coins refunded for " + remainingMonths + " remaining months!");
+                org.homes.homes.utils.MessageUtils.sendSuccess(admin, "Home has been deleted!");
                 openAdminHomesMenu(admin, target.getUniqueId(), 1);
             } else {
                 org.homes.homes.utils.MessageUtils.sendError(admin, "This home does not exist!");
@@ -852,8 +589,76 @@ public class AdminHomeMenuManager {
                     }
                 }
                 if (target != null && target.getUniqueId() != null) {
-                    openAdminHomeEditMenu(admin, target.getUniqueId(), homeName);
+                    openAdminEditHomesMenu(admin, target.getUniqueId(), 1);
                 }
+                return true;
+            }
+        }
+        return true;
+    }
+
+    public static void openSetHomeAccessMonthsMenu(Player admin, UUID targetUuid) {
+        int currentMonths = org.homes.homes.homes.HomeManager.getHomeAccessMonths(targetUuid);
+        String playerName = Bukkit.getOfflinePlayer(targetUuid).getName();
+        Inventory inv = Bukkit.createInventory(null, 27,
+                ChatColor.AQUA + "Set Home Access Months for " + playerName);
+        for (int i = 0; i < 12; i++) {
+            ItemStack item = new ItemStack(Material.PAPER);
+            ItemMeta meta = item.getItemMeta();
+            int value = i + 1;
+            if (value == currentMonths) {
+                meta.setDisplayName(ChatColor.GREEN + "✓ " + ChatColor.GOLD + value + " Months");
+                item.setType(Material.EMERALD);
+            } else {
+                meta.setDisplayName(ChatColor.YELLOW + "Set to " + ChatColor.GOLD + value + " Months");
+            }
+            meta.setLore(java.util.Collections
+                    .singletonList(ChatColor.GRAY + "Click to set access to " + value + " months"));
+            item.setItemMeta(meta);
+            inv.setItem(i, item);
+        }
+        ItemStack back = new ItemStack(Material.ARROW);
+        ItemMeta backMeta = back.getItemMeta();
+        backMeta.setDisplayName(ChatColor.YELLOW + "Back to Admin Menu");
+        back.setItemMeta(backMeta);
+        inv.setItem(18, back);
+        admin.openInventory(inv);
+    }
+
+    public static boolean handleSetHomeAccessMonthsMenuClick(InventoryClickEvent event) {
+        String title = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection()
+                .serialize(event.getView().title());
+        if (!title.startsWith(ChatColor.AQUA + "Set Home Access Months for "))
+            return false;
+        event.setCancelled(true);
+        if (event.getClickedInventory() == null
+                || !event.getClickedInventory().equals(event.getView().getTopInventory()))
+            return true;
+        Player admin = (Player) event.getWhoClicked();
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || !clicked.hasItemMeta())
+            return true;
+        String titleNoColors = ChatColor.stripColor(title);
+        String playerName = titleNoColors.replaceFirst("Set Home Access Months for ", "");
+        org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+        if (target == null || target.getUniqueId() == null)
+            return true;
+
+        String playerNameTarget = target.getName();
+        if (clicked.getType() == Material.ARROW) {
+            String displayName = clicked.getItemMeta().getDisplayName();
+            if (displayName.equals(ChatColor.YELLOW + "Back to Admin Menu")) {
+                openAdminHomesMenu(admin, target.getUniqueId(), 1);
+                return true;
+            }
+        }
+        if (clicked.getType() == Material.PAPER || clicked.getType() == Material.EMERALD) {
+            int slot = event.getSlot();
+            if (slot >= 0 && slot < 12) {
+                int months = slot + 1;
+                HomeManager.setHomeAccessMonths(target.getUniqueId(), months);
+                admin.sendMessage("Home access months for '" + playerNameTarget + "' has been set to " + months + ".");
+                openSetHomeAccessMonthsMenu(admin, target.getUniqueId());
                 return true;
             }
         }

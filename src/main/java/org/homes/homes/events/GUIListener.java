@@ -22,17 +22,13 @@ public class GUIListener implements Listener {
             return;
         if (org.homes.homes.homes.AdminHomeMenuManager.handleMaxHomesEditMenuClick(event))
             return;
-        if (org.homes.homes.homes.AdminHomeMenuManager.handleAdminHomeEditMenuClick(event))
-            return;
-        if (org.homes.homes.homes.AdminHomeMenuManager.handleAdminHomeDurationMenuClick(event))
-            return;
         if (org.homes.homes.homes.AdminHomeMenuManager.handleAdminHomeDeleteConfirmMenuClick(event))
             return;
         if (org.homes.homes.homes.AdminHomeMenuManager.handleAdminEditHomesMenuClick(event))
             return;
-        if (org.homes.homes.homes.AdminHomeMenuManager.handleEditHomeMenuClick(event))
-            return;
         if (org.homes.homes.homes.AdminHomeMenuManager.handleSetMaxHomesMenuClick(event))
+            return;
+        if (org.homes.homes.homes.AdminHomeMenuManager.handleSetHomeAccessMonthsMenuClick(event))
             return;
     }
 }

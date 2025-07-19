@@ -17,6 +17,7 @@ public class HomeManager {
     private static final String HOMES_FILE = "homes.yml";
     private static Map<UUID, Map<String, Home>> playerHomes = new HashMap<>();
     private static Map<UUID, Integer> playerMaxHomes = new HashMap<>();
+    private static Map<UUID, Integer> playerHomeAccessMonths = new HashMap<>();
     private static File file;
     private static YamlConfiguration config;
     private static JavaPlugin plugin;
@@ -33,12 +34,10 @@ public class HomeManager {
     public static class Home {
         private final String name;
         private final Location location;
-        private int durationMonths;
 
         public Home(String name, Location location) {
             this.name = name;
             this.location = location;
-            this.durationMonths = 0;
         }
 
         public String getName() {
@@ -47,14 +46,6 @@ public class HomeManager {
 
         public Location getLocation() {
             return location;
-        }
-
-        public int getDurationMonths() {
-            return durationMonths;
-        }
-
-        public void setDurationMonths(int durationMonths) {
-            this.durationMonths = durationMonths;
         }
     }
 
@@ -73,6 +64,7 @@ public class HomeManager {
     public static void loadHomes() {
         playerHomes.clear();
         playerMaxHomes.clear();
+        playerHomeAccessMonths.clear();
         if (config == null)
             return;
         for (String uuidStr : config.getKeys(false)) {
@@ -84,9 +76,11 @@ public class HomeManager {
             }
             Map<String, Home> homes = new HashMap<>();
             int maxHomes = config.getInt(uuidStr + ".maxHomes", MAX_HOMES);
+            int accessMonths = config.getInt(uuidStr + ".homeAccessMonths", 0);
             playerMaxHomes.put(uuid, maxHomes);
+            playerHomeAccessMonths.put(uuid, accessMonths);
             for (String homeName : config.getConfigurationSection(uuidStr).getKeys(false)) {
-                if (homeName.equals("maxHomes"))
+                if (homeName.equals("maxHomes") || homeName.equals("homeAccessMonths"))
                     continue;
                 String path = uuidStr + "." + homeName;
                 String world = config.getString(path + ".world");
@@ -97,15 +91,14 @@ public class HomeManager {
                 double z = config.getDouble(path + ".z");
                 float yaw = (float) config.getDouble(path + ".yaw");
                 float pitch = (float) config.getDouble(path + ".pitch");
-                Location loc = null;
                 org.bukkit.World bukkitWorld = Bukkit.getWorld(world);
+                Location loc = null;
                 if (bukkitWorld != null) {
                     loc = new Location(bukkitWorld, x, y, z, yaw, pitch);
                 } else {
                     continue;
                 }
                 Home home = new Home(homeName, loc);
-                home.setDurationMonths(config.getInt(path + ".durationMonths", 0));
                 homes.put(homeName, home);
             }
             playerHomes.put(uuid, homes);
@@ -115,15 +108,15 @@ public class HomeManager {
     public static void saveHomes() {
         if (config == null)
             return;
-
         for (String key : new HashSet<>(config.getKeys(false))) {
             config.set(key, null);
         }
         for (Map.Entry<UUID, Map<String, Home>> entry : playerHomes.entrySet()) {
             String uuidStr = entry.getKey().toString();
-
             int maxHomes = playerMaxHomes.getOrDefault(entry.getKey(), MAX_HOMES);
+            int accessMonths = playerHomeAccessMonths.getOrDefault(entry.getKey(), 0);
             config.set(uuidStr + ".maxHomes", maxHomes);
+            config.set(uuidStr + ".homeAccessMonths", accessMonths);
             for (Map.Entry<String, Home> homeEntry : entry.getValue().entrySet()) {
                 Home home = homeEntry.getValue();
                 Location loc = home.getLocation();
@@ -134,7 +127,6 @@ public class HomeManager {
                 config.set(path + ".z", loc.getZ());
                 config.set(path + ".yaw", loc.getYaw());
                 config.set(path + ".pitch", loc.getPitch());
-                config.set(path + ".durationMonths", home.getDurationMonths());
             }
         }
         try {
@@ -158,8 +150,6 @@ public class HomeManager {
         if (!EconomyUtils.removeMoney(player, homeCost))
             return false;
         Home home = new Home(name, player.getLocation());
-        int defaultDuration = configManager != null ? configManager.getDefaultHomeDuration() : 1;
-        home.setDurationMonths(defaultDuration);
         homes.put(name, home);
         saveHomes();
         return true;
@@ -205,21 +195,39 @@ public class HomeManager {
         saveHomes();
     }
 
-    public static int getHomeDuration(UUID uuid, String homeName) {
-        Map<String, Home> homes = playerHomes.get(uuid);
-        if (homes == null)
-            return 0;
-        Home home = homes.get(homeName);
-        return home != null ? home.getDurationMonths() : 0;
+    public static int getHomeAccessMonths(UUID uuid) {
+        return playerHomeAccessMonths.getOrDefault(uuid, 0);
     }
 
-    public static void setHomeDuration(UUID uuid, String homeName, int months) {
-        Map<String, Home> homes = playerHomes.computeIfAbsent(uuid, k -> new HashMap<>());
-        Home home = homes.get(homeName);
-        if (home != null) {
-            home.setDurationMonths(months);
-            saveHomes();
+    public static void setHomeAccessMonths(UUID uuid, int months) {
+        playerHomeAccessMonths.put(uuid, months);
+        saveHomes();
+    }
+
+    public static boolean hasHomeAccess(UUID uuid) {
+        return playerHomeAccessMonths.getOrDefault(uuid, 0) > 0;
+    }
+
+    public static Set<UUID> getPlayersWithHomeAccessMonths() {
+        return playerHomeAccessMonths.keySet();
+    }
+
+    public static void processMonthlyAccess(JavaPlugin plugin) {
+        for (UUID uuid : getPlayersWithHomeAccessMonths()) {
+            int months = getHomeAccessMonths(uuid);
+            if (months > 0) {
+                setHomeAccessMonths(uuid, months - 1);
+                if (months - 1 <= 0) {
+                    org.bukkit.OfflinePlayer offp = plugin.getServer().getOfflinePlayer(uuid);
+                    if (offp.isOnline()) {
+                        org.bukkit.entity.Player p = offp.getPlayer();
+                        if (p != null) {
+                            p.recalculatePermissions();
+                            p.addAttachment(plugin, "home_acces", false);
+                        }
+                    }
+                }
+            }
         }
     }
-
 }

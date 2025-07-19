@@ -165,15 +165,9 @@ public class HomeMenuManager {
                 org.homes.homes.utils.MessageUtils.sendError(player, "This home does not exist!");
                 return true;
             }
-            org.homes.homes.config.ConfigManager configManager = org.homes.homes.Main.getInstance().getConfigManager();
-            int pricePerMonth = configManager.getHomePrice();
-            int remainingMonths = home.getDurationMonths();
-            int refundAmount = remainingMonths * pricePerMonth;
             boolean ok = HomeManager.removeHome(player.getUniqueId(), name);
             if (ok) {
-                org.homes.homes.utils.EconomyUtils.addMoney(player, refundAmount);
-                org.homes.homes.utils.MessageUtils.sendSuccess(player, "Home has been deleted and " + refundAmount
-                        + " coins refunded for " + remainingMonths + " remaining months!");
+                org.homes.homes.utils.MessageUtils.sendSuccess(player, "Home has been deleted!");
             } else {
                 org.homes.homes.utils.MessageUtils.sendError(player, "Failed to delete home!");
             }

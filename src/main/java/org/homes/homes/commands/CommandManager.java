@@ -24,7 +24,6 @@ public class CommandManager implements TabCompleter {
         commands.put("delhome", new DeleteHomeCommand());
         commands.put("homes", new HomesCommand(configManager));
         commands.put("adminhome", new AdminHomeCommand());
-        commands.put("extendhometime", new ExtendHomeTimeCommand());
     }
 
     public boolean executeCommand(CommandSender sender, Command command, String label, String[] args) {

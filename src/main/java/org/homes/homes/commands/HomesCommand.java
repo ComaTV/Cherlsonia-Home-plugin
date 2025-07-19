@@ -29,6 +29,12 @@ public class HomesCommand implements CommandManager.CommandExecutor {
             MessageUtils.sendError(sender, "Only players can use this command.");
             return true;
         }
+        Player player = (Player) sender;
+        if (!player.hasPermission("home_acces")
+                || !org.homes.homes.homes.HomeManager.hasHomeAccess(player.getUniqueId())) {
+            MessageUtils.sendError(sender, "You do not have access to home commands!");
+            return true;
+        }
         HomeMenuManager.openHomesMenu((Player) sender, 1);
         return false;
     }

@@ -8,7 +8,6 @@ import org.homes.homes.config.ConfigManager;
 import org.homes.homes.events.EventManager;
 import org.homes.homes.homes.HomeManager;
 import org.homes.homes.utils.MessageUtils;
-import org.homes.homes.commands.ExtendHomeTimeCommand;
 
 public class Main extends JavaPlugin {
     private static Main instance;
@@ -32,11 +31,13 @@ public class Main extends JavaPlugin {
         getCommand("addhome").setTabCompleter(commandManager);
         getCommand("delhome").setTabCompleter(commandManager);
         getCommand("homes").setTabCompleter(commandManager);
-        getCommand("extendhometime").setTabCompleter(new ExtendHomeTimeCommand());
 
         eventManager = new EventManager(this);
         eventManager.registerAllListeners();
 
+        getServer().getScheduler().runTaskLater(this, () -> {
+            org.homes.homes.homes.HomeManager.processMonthlyAccess(this);
+        }, 20L * 10);
     }
 
     @Override

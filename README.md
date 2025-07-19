@@ -19,7 +19,6 @@
 - **Economy integration** with configurable costs
 - **Advanced GUI menus** with pagination
 - **Admin management tools** for server operators
-- **Duration-based system** with expiration mechanics
 - **Automatic data persistence** in YAML format
 
 ## ✨ Features
@@ -83,7 +82,6 @@ messages:
 # Home System Configuration
 home:
   price: 100                    # Cost to create a home (in coins)
-  default_home_duration: 1      # Default duration in months for new homes
 ```
 
 ### Configuration Options
@@ -96,7 +94,6 @@ home:
 | `messages.invalid_item` | String | `"&cInvalid item: %item%"` | Message for invalid item selections |
 | `messages.invalid_name` | String | `"&cInvalid waypoint name!..."` | Message for invalid home names |
 | `home.price` | Integer | `100` | Cost in coins to create a new home |
-| `home.default_home_duration` | Integer | `1` | Default duration in months for newly created homes |
 
 ### Color Codes
 The plugin supports Minecraft color codes:
@@ -116,7 +113,6 @@ The plugin supports Minecraft color codes:
 | `/addhome` | `/addhome <name>` | Create a home at current location | `homes.addhome` |
 | `/delhome` | `/delhome [name]` | Delete a home or open delete menu | `homes.delhome` |
 | `/homes` | `/homes` | Open homes management menu | `homes.homes` |
-| `/extendhometime` | `/extendhometime <name> <months>` | Extend home duration | `homes.extend` |
 
 ### Admin Commands
 
@@ -152,12 +148,6 @@ The plugin supports Minecraft color codes:
   - View home information
   - Pagination support
 
-#### `/extendhometime <name> <months>`
-- **Purpose**: Extend home duration
-- **Cost**: `home.price × months`
-- **Range**: 1-10 months per extension
-- **Requirements**: Home must exist and player must have sufficient funds
-
 #### `/adminhome`
 - **Purpose**: Open admin management GUI
 - **Features**:
@@ -176,12 +166,11 @@ The plugin supports Minecraft color codes:
 | `homes.addhome` | Allow creating homes | `true` (everyone) |
 | `homes.delhome` | Allow deleting homes | `true` (everyone) |
 | `homes.homes` | Allow using homes menu | `true` (everyone) |
-| `homes.extend` | Allow extending home time | `true` (everyone) |
 | `homes.admin` | Access admin features | `false` (OP only) |
 | `homes.reload` | Reload plugin configuration | `false` (OP only) |
 
 ### Permission Groups
-- **Players**: Basic home management (`homes.addhome`, `homes.delhome`, `homes.homes`, `homes.extend`)
+- **Players**: Basic home management (`homes.addhome`, `homes.delhome`, `homes.homes`)
 - **Operators**: Full access including admin features
 - **Server Admins**: All permissions including reload
 

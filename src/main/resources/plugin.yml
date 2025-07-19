@@ -16,6 +16,3 @@ commands:
   adminhome:
     description: Open the admin menu to manage all players' homes (OP only)
     usage: /adminhome
-  extendhometime:
-    description: "Extend the duration of a home by a number of months."
-    usage: "/extendhometime <home_name> <months>"
