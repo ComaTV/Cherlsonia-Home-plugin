@@ -41,11 +41,5 @@ public class MessageUtils {
         sendMessage(sender, "&e" + message);
     }
 
-    public static String formatLocation(org.bukkit.Location location) {
-        return String.format("&7[&f%s&7, &f%.1f&7, &f%.1f&7, &f%.1f&7]", 
-            location.getWorld().getName(), 
-            location.getX(), 
-            location.getY(), 
-            location.getZ());
-    }
+
 } 

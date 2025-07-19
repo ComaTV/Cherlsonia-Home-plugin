@@ -22,30 +22,27 @@ public class Main extends JavaPlugin {
         configManager = new ConfigManager(this);
         MessageUtils.setConfigManager(configManager);
 
-        // Initialize home system
         HomeManager.setPlugin(this);
         HomeManager.init(getDataFolder());
         HomeManager.setConfigManager(configManager);
+        org.homes.homes.homes.HomeMenuManager.setConfigManager(configManager);
+        org.homes.homes.homes.AdminHomeMenuManager.setConfigManager(configManager);
 
-        // Initialize command system
         commandManager = new CommandManager(configManager);
         getCommand("addhome").setTabCompleter(commandManager);
         getCommand("delhome").setTabCompleter(commandManager);
         getCommand("homes").setTabCompleter(commandManager);
         getCommand("extendhometime").setTabCompleter(new ExtendHomeTimeCommand());
 
-        // Initialize event system
         eventManager = new EventManager(this);
         eventManager.registerAllListeners();
 
-        getLogger().info("Home plugin enabled successfully!");
-        getLogger().info("Loaded " + HomeManager.getPlayersWithHomes().size() + " players with homes");
     }
 
     @Override
     public void onDisable() {
         HomeManager.saveHomes();
-        getLogger().info("Home plugin disabled!");
+
     }
 
     @Override
@@ -61,11 +58,4 @@ public class Main extends JavaPlugin {
         return configManager;
     }
 
-    public CommandManager getCommandManager() {
-        return commandManager;
-    }
-
-    public EventManager getEventManager() {
-        return eventManager;
-    }
 }

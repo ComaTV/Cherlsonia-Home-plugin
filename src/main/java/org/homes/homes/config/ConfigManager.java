@@ -45,10 +45,6 @@ public class ConfigManager {
         config = YamlConfiguration.loadConfiguration(configFile);
     }
 
-    public FileConfiguration getConfig() {
-        return config;
-    }
-
     public String getMessage(String path) {
         return config.getString("messages." + path, "Message not found: " + path);
     }

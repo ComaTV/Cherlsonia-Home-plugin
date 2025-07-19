@@ -41,7 +41,7 @@ public class ExtendHomeTimeCommand
             MessageUtils.sendError(sender, "You don't have any home with this name!");
             return true;
         }
-        // Cost logic
+
         ConfigManager configManager = org.homes.homes.Main.getInstance().getConfigManager();
         int pricePerMonth = configManager.getHomePrice();
         int totalCost = months * pricePerMonth;

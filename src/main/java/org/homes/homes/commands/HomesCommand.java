@@ -19,9 +19,9 @@ public class HomesCommand implements CommandManager.CommandExecutor {
         if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
             if (sender.hasPermission("homes.reload") || sender.isOp()) {
                 configManager.reloadConfig();
-                sender.sendMessage("§aConfig-ul a fost reîncărcat!");
+                sender.sendMessage("§aConfiguration has been reloaded!");
             } else {
-                sender.sendMessage("§cNu ai permisiunea să folosești această comandă.");
+                sender.sendMessage("§cYou don't have permission to use this command.");
             }
             return true;
         }
@@ -29,7 +29,7 @@ public class HomesCommand implements CommandManager.CommandExecutor {
             MessageUtils.sendError(sender, "Only players can use this command.");
             return true;
         }
-        HomeMenuManager.openHomesMenu((Player) sender);
+        HomeMenuManager.openHomesMenu((Player) sender, 1);
         return false;
     }
-} 
+}

@@ -9,17 +9,30 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (HomeMenuManager.handleAdminHomesMenuClick(event))
+        if (HomeMenuManager.handleHomeMenuClick(event)) {
             return;
-        if (HomeMenuManager.handleHomeMenuClick(event))
+        }
+        if (HomeMenuManager.handleDeleteHomeMenuClick(event)) {
             return;
-        if (HomeMenuManager.handleDeleteHomeMenuClick(event))
+        }
+        if (org.homes.homes.homes.AdminHomeMenuManager.handleAdminHomesMenuClick(event)) {
             return;
-        if (HomeMenuManager.handleAdminPlayersMenuClick(event))
+        }
+        if (org.homes.homes.homes.AdminHomeMenuManager.handleAdminPlayersMenuClick(event))
             return;
-        HomeMenuManager.handleAdminHomesMenuClick(event);
-        org.homes.homes.homes.AdminHomeMenuManager.handleAdminEditHomesMenuClick(event);
-        org.homes.homes.homes.AdminHomeMenuManager.handleEditHomeMenuClick(event);
-        org.homes.homes.homes.AdminHomeMenuManager.handleSetMaxHomesMenuClick(event);
+        if (org.homes.homes.homes.AdminHomeMenuManager.handleMaxHomesEditMenuClick(event))
+            return;
+        if (org.homes.homes.homes.AdminHomeMenuManager.handleAdminHomeEditMenuClick(event))
+            return;
+        if (org.homes.homes.homes.AdminHomeMenuManager.handleAdminHomeDurationMenuClick(event))
+            return;
+        if (org.homes.homes.homes.AdminHomeMenuManager.handleAdminHomeDeleteConfirmMenuClick(event))
+            return;
+        if (org.homes.homes.homes.AdminHomeMenuManager.handleAdminEditHomesMenuClick(event))
+            return;
+        if (org.homes.homes.homes.AdminHomeMenuManager.handleEditHomeMenuClick(event))
+            return;
+        if (org.homes.homes.homes.AdminHomeMenuManager.handleSetMaxHomesMenuClick(event))
+            return;
     }
 }

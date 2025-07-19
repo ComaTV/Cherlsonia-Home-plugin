@@ -26,8 +26,4 @@ public class EventManager {
         }
     }
 
-    public void addListener(Listener listener) {
-        listeners.add(listener);
-        plugin.getServer().getPluginManager().registerEvents(listener, plugin);
-    }
-} 
+}

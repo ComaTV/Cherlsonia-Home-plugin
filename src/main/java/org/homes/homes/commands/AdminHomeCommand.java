@@ -2,7 +2,7 @@ package org.homes.homes.commands;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.homes.homes.homes.HomeMenuManager;
+import org.homes.homes.homes.AdminHomeMenuManager;
 import org.homes.homes.utils.MessageUtils;
 import org.homes.homes.utils.ValidationUtils;
 
@@ -18,7 +18,7 @@ public class AdminHomeCommand implements CommandManager.CommandExecutor {
             return true;
         }
         Player player = (Player) sender;
-        HomeMenuManager.openAdminPlayersMenu(player, 1);
+        AdminHomeMenuManager.openAdminPlayersMenu(player, 1);
         return true;
     }
-} 
+}

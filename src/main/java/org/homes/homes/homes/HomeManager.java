@@ -38,7 +38,7 @@ public class HomeManager {
         public Home(String name, Location location) {
             this.name = name;
             this.location = location;
-            this.durationMonths = 0; // Default duration
+            this.durationMonths = 0;
         }
 
         public String getName() {
@@ -115,13 +115,13 @@ public class HomeManager {
     public static void saveHomes() {
         if (config == null)
             return;
-        // Șterge toate cheile vechi
+
         for (String key : new HashSet<>(config.getKeys(false))) {
             config.set(key, null);
         }
         for (Map.Entry<UUID, Map<String, Home>> entry : playerHomes.entrySet()) {
             String uuidStr = entry.getKey().toString();
-            // Salvează maxHomes pentru fiecare jucător
+
             int maxHomes = playerMaxHomes.getOrDefault(entry.getKey(), MAX_HOMES);
             config.set(uuidStr + ".maxHomes", maxHomes);
             for (Map.Entry<String, Home> homeEntry : entry.getValue().entrySet()) {
@@ -149,8 +149,8 @@ public class HomeManager {
             return false;
         UUID uuid = player.getUniqueId();
         Map<String, Home> homes = playerHomes.computeIfAbsent(uuid, k -> new HashMap<>());
-        if (homes.size() >= getMaxHomes(uuid)){
-            player.sendMessage("Limita de home-uri + "+ getMaxHomes(uuid));
+        if (homes.size() >= getMaxHomes(uuid)) {
+            player.sendMessage("Home limit reached: " + getMaxHomes(uuid));
             return false;
         }
         if (homes.containsKey(name))
@@ -202,7 +202,7 @@ public class HomeManager {
 
     public static void setMaxHomes(UUID uuid, int max) {
         playerMaxHomes.put(uuid, max);
-        saveHomes(); // Save the new max homes
+        saveHomes();
     }
 
     public static int getHomeDuration(UUID uuid, String homeName) {
@@ -222,40 +222,4 @@ public class HomeManager {
         }
     }
 
-    // Scade cu 1 durata fiecărui home, șterge home-urile cu durata 0 și notifică
-    // jucătorii
-    public static void decrementHomeDurationsAndNotify() {
-        List<String> deleted = new ArrayList<>();
-        for (Map.Entry<UUID, Map<String, Home>> entry : playerHomes.entrySet()) {
-            UUID uuid = entry.getKey();
-            Map<String, Home> homes = entry.getValue();
-            Iterator<Map.Entry<String, Home>> it = homes.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<String, Home> homeEntry = it.next();
-                Home home = homeEntry.getValue();
-                int duration = home.getDurationMonths();
-                if (duration > 0) {
-                    home.setDurationMonths(duration - 1);
-                    if (duration - 1 == 1) {
-                        // Notifică jucătorul că home-ul e în ultima lună
-                        Player player = Bukkit.getPlayer(uuid);
-                        if (player != null && player.isOnline()) {
-                            org.homes.homes.utils.MessageUtils.sendInfo(player, "Home-ul '" + home.getName()
-                                    + "' este în ultima sa lună și va expira dacă nu este prelungit!");
-                        }
-                    } else if (duration - 1 == 0) {
-                        // Șterge home-ul și notifică
-                        it.remove();
-                        Player player = Bukkit.getPlayer(uuid);
-                        if (player != null && player.isOnline()) {
-                            org.homes.homes.utils.MessageUtils.sendError(player,
-                                    "Home-ul '" + home.getName() + "' a expirat și a fost șters!");
-                        }
-                        deleted.add(home.getName());
-                    }
-                }
-            }
-        }
-        saveHomes();
-    }
 }
